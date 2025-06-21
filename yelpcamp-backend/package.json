@@ -5,6 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build": "echo 'No build step required for backend API'",
+    "postinstall": "echo 'Backend dependencies installed successfully'",
     "dev": "nodemon server.js",
     "enhance-descriptions": "node enhance-descriptions.js",
     "test": "echo \"Error: no test specified\" && exit 1"
