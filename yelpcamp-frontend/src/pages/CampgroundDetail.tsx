@@ -83,20 +83,41 @@ const CampgroundDetail: React.FC = () => {
     e.preventDefault();
     if (!id || !isAuthenticated) return;
 
+    // Debug logging
+    console.log('Review submission debug:');
+    console.log('User authenticated:', isAuthenticated);
+    console.log('User object:', user);
+    console.log('Review form data:', reviewForm);
+    console.log('Campground ID:', id);
+
     setSubmittingReview(true);
     try {
+      // First, let's check if we're still authenticated by calling the me endpoint
+      const authCheck = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/me`, {
+        credentials: 'include'
+      });
+      console.log('Auth check response:', authCheck.status);
+      
       const response = await reviewsAPI.create(id, reviewForm);
+      console.log('Review API response:', response);
+      
       if (response.success) {
         toast.success('Review added successfully!');
         setShowReviewModal(false);
         setReviewForm({ rating: 5, body: '' });
         fetchCampgroundData(); // Refresh to show new review
       } else {
+        console.error('Review creation failed:', response);
         toast.error('Failed to add review');
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Review submission error:', error);
+      if (error?.response) {
+        console.error('Error response data:', error.response.data);
+        console.error('Error response status:', error.response.status);
+        console.error('Error response headers:', error.response.headers);
+      }
       toast.error('Failed to add review');
-      console.error('Error adding review:', error);
     } finally {
       setSubmittingReview(false);
     }
@@ -310,7 +331,10 @@ const CampgroundDetail: React.FC = () => {
                           </div>
                           <p className="mb-0">{review.body}</p>
                           <small className="text-muted">
-                            {new Date(review.createdAt).toLocaleDateString()}
+                            {review.createdAt ? 
+                              new Date(review.createdAt).toLocaleDateString() : 
+                              'Date unavailable'
+                            }
                           </small>
                         </div>
                       </div>
