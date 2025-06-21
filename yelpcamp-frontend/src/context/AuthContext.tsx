@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authAPI, User } from '../services/api';
 import { toast } from 'react-toastify';
-import { updateIntercomUser, shutdownIntercom } from '../services/intercomService';
+import { updateIntercomWithBookings, shutdownIntercom } from '../services/intercomService';
 
 interface AuthContextType {
   user: User | null;
@@ -34,9 +34,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthStatus();
   }, []);
 
-  // Update Intercom when user state changes
+  // Update Intercom when user state changes - now with booking data
   useEffect(() => {
-    updateIntercomUser(user);
+    if (user) {
+      // Add login timestamp for Intercom tracking
+      const userWithLoginTime = {
+        ...user,
+        last_login_at: Math.floor(Date.now() / 1000)
+      };
+      updateIntercomWithBookings(userWithLoginTime);
+    } else {
+      shutdownIntercom();
+    }
   }, [user]);
 
   const checkAuthStatus = async () => {
@@ -61,7 +70,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authAPI.login({ username, password });
       if (response.success && response.data) {
-        setUser(response.data.user);
+        const userWithSignupSource = {
+          ...response.data.user,
+          signup_source: 'login_form',
+          last_login_at: Math.floor(Date.now() / 1000)
+        };
+        setUser(userWithSignupSource);
         toast.success(response.message || 'Login successful!');
         return true;
       } else {
@@ -79,7 +93,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authAPI.register({ username, email, password });
       if (response.success && response.data) {
-        setUser(response.data.user);
+        const userWithSignupSource = {
+          ...response.data.user,
+          signup_source: 'registration_form',
+          last_login_at: Math.floor(Date.now() / 1000)
+        };
+        setUser(userWithSignupSource);
         toast.success(response.message || 'Registration successful!');
         return true;
       } else {

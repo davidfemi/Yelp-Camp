@@ -18,6 +18,15 @@ export interface User {
   email: string;
 }
 
+export interface UserProfile extends User {
+  createdAt: string;
+  stats: {
+    campgrounds: number;
+    bookings: number;
+    reviews: number;
+  };
+}
+
 export interface Campground {
   _id: string;
   title: string;
@@ -37,6 +46,10 @@ export interface Campground {
     type: string;
     coordinates: [number, number];
   };
+  capacity?: number;
+  peopleBooked?: number;
+  bookingPercentage?: number;
+  availableSpots?: number;
 }
 
 export interface Review {
@@ -71,6 +84,31 @@ export interface CampgroundsResponse {
   pagination: PaginationInfo;
 }
 
+export interface Booking {
+  _id: string;
+  user: {
+    _id: string;
+    username: string;
+    email: string;
+  };
+  campground: {
+    _id: string;
+    title: string;
+    location: string;
+    price: number;
+    images?: Array<{
+      url: string;
+      filename: string;
+    }>;
+  };
+  days: number;
+  totalPrice: number;
+  status: 'confirmed' | 'cancelled' | 'expired';
+  checkInDate: string;
+  checkOutDate: string;
+  createdAt: string;
+}
+
 // Auth API
 export const authAPI = {
   register: async (userData: { username: string; email: string; password: string }) => {
@@ -94,6 +132,14 @@ export const authAPI = {
   },
 };
 
+// User Profile API
+export const userAPI = {
+  getProfile: async () => {
+    const response = await api.get<ApiResponse<{ user: UserProfile }>>('/api/users/profile');
+    return response.data;
+  },
+};
+
 // Campgrounds API
 export const campgroundsAPI = {
   getAll: async (params?: {
@@ -111,7 +157,17 @@ export const campgroundsAPI = {
   },
 
   getById: async (id: string) => {
-    const response = await api.get<ApiResponse<{ campground: Campground; stats: { averageRating: number; totalReviews: number } }>>(`/api/campgrounds/${id}`);
+    const response = await api.get<ApiResponse<{ 
+      campground: Campground; 
+      stats: { 
+        averageRating: number; 
+        totalReviews: number;
+        capacity: number;
+        peopleBooked: number;
+        bookingPercentage: number;
+        availableSpots: number;
+      } 
+    }>>(`/api/campgrounds/${id}`);
     return response.data;
   },
 
@@ -173,6 +229,19 @@ export const statsAPI = {
       pricing: { avgPrice: number; minPrice: number; maxPrice: number };
       topLocations: Array<{ _id: string; count: number }>;
     }>>('/api/stats');
+    return response.data;
+  },
+};
+
+// Booking API
+export const bookingAPI = {
+  create: async (campgroundId: string, bookingData: { days: number; checkInDate: string }) => {
+    const response = await api.post<ApiResponse<{ booking: Booking }>>(`/api/campgrounds/${campgroundId}/bookings`, bookingData);
+    return response.data;
+  },
+
+  getUserBookings: async () => {
+    const response = await api.get<ApiResponse<{ bookings: Booking[] }>>('/api/bookings');
     return response.data;
   },
 };

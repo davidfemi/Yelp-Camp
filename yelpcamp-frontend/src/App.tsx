@@ -14,6 +14,7 @@ import Campgrounds from './pages/Campgrounds';
 import CampgroundDetail from './pages/CampgroundDetail';
 import NewCampground from './pages/NewCampground';
 import EditCampground from './pages/EditCampground';
+import UserProfile from './pages/UserProfile';
 import ProtectedRoute from './components/ProtectedRoute';
 
 import './App.css';
@@ -54,6 +55,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditCampground />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
               </ProtectedRoute>
             }
           />

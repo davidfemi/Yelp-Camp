@@ -8,11 +8,13 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
+const BookingCleanupService = require('./utils/bookingCleanup');
 
 // Import models
 const User = require('./models/user');
 const Campground = require('./models/campground');
 const Review = require('./models/review');
+const Booking = require('./models/booking');
 
 // Import utilities
 const ExpressError = require('./utils/ExpressError');
@@ -215,6 +217,44 @@ app.get('/api/auth/me', (req, res) => {
     }
 });
 
+// User Profile Route
+app.get('/api/users/profile', isLoggedIn, catchAsync(async (req, res) => {
+    const user = await User.findById(req.user._id).select('-salt -hash');
+    
+    if (!user) {
+        return res.status(404).json({
+            success: false,
+            error: 'User not found'
+        });
+    }
+
+    // Get user's campground count
+    const campgroundCount = await Campground.countDocuments({ author: req.user._id });
+    
+    // Get user's booking count
+    const bookingCount = await Booking.countDocuments({ user: req.user._id });
+    
+    // Get user's review count
+    const reviewCount = await Review.countDocuments({ author: req.user._id });
+
+    res.json({
+        success: true,
+        data: {
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                createdAt: user.createdAt || new Date(),
+                stats: {
+                    campgrounds: campgroundCount,
+                    bookings: bookingCount,
+                    reviews: reviewCount
+                }
+            }
+        }
+    });
+}));
+
 // Campgrounds Routes
 app.get('/api/campgrounds', catchAsync(async (req, res) => {
     const { 
@@ -258,13 +298,21 @@ app.get('/api/campgrounds', catchAsync(async (req, res) => {
         .skip(skip)
         .limit(parseInt(limit));
 
+    // Add booking statistics to each campground
+    const campgroundsWithBookingStats = campgrounds.map(campground => {
+        const campgroundObj = campground.toObject();
+        campgroundObj.bookingPercentage = campground.capacity > 0 ? Math.round((campground.peopleBooked / campground.capacity) * 100) : 0;
+        campgroundObj.availableSpots = Math.max(0, campground.capacity - campground.peopleBooked);
+        return campgroundObj;
+    });
+
     const total = await Campground.countDocuments(query);
     const totalPages = Math.ceil(total / parseInt(limit));
 
     res.json({
         success: true,
         data: {
-            campgrounds,
+            campgrounds: campgroundsWithBookingStats,
             pagination: {
                 currentPage: parseInt(page),
                 totalPages,
@@ -300,13 +348,21 @@ app.get('/api/campgrounds/:id', catchAsync(async (req, res) => {
         ? campground.reviews.reduce((sum, review) => sum + review.rating, 0) / campground.reviews.length
         : 0;
 
+    // Add booking statistics
+    const bookingPercentage = campground.capacity > 0 ? Math.round((campground.peopleBooked / campground.capacity) * 100) : 0;
+    const availableSpots = Math.max(0, campground.capacity - campground.peopleBooked);
+
     res.json({
         success: true,
         data: {
             campground,
             stats: {
                 averageRating: Math.round(avgRating * 10) / 10,
-                totalReviews: campground.reviews.length
+                totalReviews: campground.reviews.length,
+                capacity: campground.capacity,
+                peopleBooked: campground.peopleBooked,
+                bookingPercentage: bookingPercentage,
+                availableSpots: availableSpots
             }
         }
     });
@@ -425,6 +481,184 @@ app.delete('/api/campgrounds/:id/reviews/:reviewId', isLoggedIn, isReviewAuthor,
     });
 }));
 
+// Booking Routes
+app.post('/api/campgrounds/:id/bookings', isLoggedIn, catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { days, checkInDate } = req.body;
+
+    console.log(`🔄 Booking request - Campground ID: ${id}, Days: ${days}, CheckIn: ${checkInDate}, User: ${req.user._id}`);
+
+    if (!days || days < 1) {
+        console.log('❌ Invalid days parameter:', days);
+        return res.status(400).json({
+            success: false,
+            error: 'Number of days must be at least 1'
+        });
+    }
+
+    // Validate check-in date
+    const checkIn = new Date(checkInDate || new Date());
+    const now = new Date();
+    
+    if (checkIn < now) {
+        console.log('❌ Invalid check-in date:', checkInDate);
+        return res.status(400).json({
+            success: false,
+            error: 'Check-in date cannot be in the past'
+        });
+    }
+
+    // Calculate check-out date
+    const checkOut = new Date(checkIn);
+    checkOut.setDate(checkOut.getDate() + days);
+
+    try {
+        // Run booking expiration cleanup before creating new booking
+        console.log('🧹 Running booking expiration cleanup...');
+        const expiredCount = await Booking.expireBookings();
+        if (expiredCount > 0) {
+            console.log(`✅ Expired ${expiredCount} bookings and freed up spots`);
+        }
+
+        const campground = await Campground.findById(id);
+        if (!campground) {
+            console.log('❌ Campground not found:', id);
+            return res.status(404).json({
+                success: false,
+                error: 'Campground not found'
+            });
+        }
+
+        console.log(`📊 Campground found: ${campground.title}`);
+        console.log(`📊 Current capacity: ${campground.capacity}, peopleBooked: ${campground.peopleBooked}`);
+
+        // Ensure capacity and peopleBooked fields exist with defaults
+        if (campground.capacity === undefined || campground.capacity === null) {
+            console.log('⚠️ Capacity field missing, setting default to 50');
+            campground.capacity = 50;
+            await campground.save();
+        }
+
+        if (campground.peopleBooked === undefined || campground.peopleBooked === null) {
+            console.log('⚠️ PeopleBooked field missing, setting default to 0');
+            campground.peopleBooked = 0;
+            await campground.save();
+        }
+
+        // Check if campground has capacity
+        if (campground.peopleBooked >= campground.capacity) {
+            console.log('❌ Campground fully booked');
+            return res.status(400).json({
+                success: false,
+                error: 'Campground is fully booked'
+            });
+        }
+
+        const totalPrice = campground.price * days;
+        console.log(`💰 Calculated total price: ${totalPrice}`);
+        console.log(`📅 Check-in: ${checkIn.toISOString()}, Check-out: ${checkOut.toISOString()}`);
+
+        const booking = new Booking({
+            user: req.user._id,
+            campground: id,
+            days: days,
+            totalPrice: totalPrice,
+            checkInDate: checkIn,
+            checkOutDate: checkOut
+        });
+
+        console.log('💾 Saving booking...');
+        await booking.save();
+        
+        // Increment the peopleBooked count
+        console.log('📈 Incrementing peopleBooked count...');
+        await Campground.findByIdAndUpdate(id, { 
+            $inc: { peopleBooked: 1 } 
+        });
+
+        console.log('🔄 Populating booking data...');
+        await booking.populate('user', 'username email');
+        await booking.populate('campground', 'title location price capacity peopleBooked');
+
+        // Create a clean response object to avoid JSON serialization issues
+        const cleanBooking = {
+            _id: booking._id,
+            user: {
+                _id: booking.user._id,
+                username: booking.user.username,
+                email: booking.user.email
+            },
+            campground: {
+                _id: booking.campground._id,
+                title: booking.campground.title,
+                location: booking.campground.location,
+                price: booking.campground.price,
+                capacity: booking.campground.capacity,
+                peopleBooked: booking.campground.peopleBooked + 1, // Add 1 since we just incremented
+                availableSpots: Math.max(0, booking.campground.capacity - (booking.campground.peopleBooked + 1))
+            },
+            days: booking.days,
+            totalPrice: booking.totalPrice,
+            status: booking.status,
+            checkInDate: booking.checkInDate,
+            checkOutDate: booking.checkOutDate,
+            createdAt: booking.createdAt
+        };
+
+        console.log('✅ Booking created successfully');
+        res.status(201).json({
+            success: true,
+            data: { booking: cleanBooking },
+            message: 'Booking created successfully'
+        });
+
+    } catch (error) {
+        console.error('💥 Booking creation error:', error);
+        console.error('Error stack:', error.stack);
+        throw error; // Let catchAsync handle it
+    }
+}));
+
+app.get('/api/bookings', isLoggedIn, catchAsync(async (req, res) => {
+    console.log(`🔄 Fetching bookings for user: ${req.user._id}`);
+    
+    try {
+        const bookings = await Booking.find({ user: req.user._id })
+            .populate('campground', 'title location price images')
+            .sort({ createdAt: -1 });
+
+        console.log(`📊 Found ${bookings.length} bookings for user`);
+        
+        // Clean the booking data to avoid serialization issues
+        const cleanBookings = bookings.map(booking => {
+            const bookingObj = booking.toObject();
+            
+            // Ensure campground data is clean
+            if (bookingObj.campground) {
+                bookingObj.campground = {
+                    _id: bookingObj.campground._id,
+                    title: bookingObj.campground.title || 'Untitled Campground',
+                    location: bookingObj.campground.location || 'Unknown Location',
+                    price: bookingObj.campground.price || 0,
+                    images: bookingObj.campground.images || []
+                };
+            }
+            
+            return bookingObj;
+        });
+
+        console.log('✅ Bookings data cleaned and ready to send');
+        
+        res.json({
+            success: true,
+            data: { bookings: cleanBookings }
+        });
+    } catch (error) {
+        console.error('💥 Error fetching bookings:', error);
+        throw error;
+    }
+}));
+
 // Search and Category Routes
 app.get('/api/campgrounds/search/:term', catchAsync(async (req, res) => {
     const { term } = req.params;
@@ -487,6 +721,67 @@ app.get('/api/campgrounds/category/:type', catchAsync(async (req, res) => {
             campgrounds
         }
     });
+}));
+
+// Booking Cleanup Routes
+app.post('/api/admin/cleanup-bookings', catchAsync(async (req, res) => {
+    console.log('🧹 Manual booking cleanup requested');
+    
+    try {
+        const result = await BookingCleanupService.runCleanup();
+        
+        res.json({
+            success: true,
+            data: result,
+            message: `Cleanup completed: Expired ${result.expiredCount} bookings, freed ${result.freedSpots} spots`
+        });
+    } catch (error) {
+        console.error('💥 Manual cleanup failed:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Cleanup failed',
+            details: error.message
+        });
+    }
+}));
+
+app.get('/api/admin/booking-expiration-stats', catchAsync(async (req, res) => {
+    try {
+        const stats = await BookingCleanupService.getExpirationStats();
+        
+        res.json({
+            success: true,
+            data: stats
+        });
+    } catch (error) {
+        console.error('💥 Failed to get expiration stats:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get expiration statistics',
+            details: error.message
+        });
+    }
+}));
+
+app.post('/api/admin/validate-booking-counts', catchAsync(async (req, res) => {
+    console.log('🔍 Manual booking count validation requested');
+    
+    try {
+        const fixedCount = await BookingCleanupService.validateBookingCounts();
+        
+        res.json({
+            success: true,
+            data: { fixedCount },
+            message: `Validation completed: Fixed ${fixedCount} campground booking counts`
+        });
+    } catch (error) {
+        console.error('💥 Booking count validation failed:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Validation failed',
+            details: error.message
+        });
+    }
 }));
 
 // Stats Route
@@ -639,10 +934,34 @@ app.use((err, req, res, next) => {
     const { statusCode = 500 } = err;
     if (!err.message) err.message = "Something went wrong!";
     
+    // Enhanced error logging for debugging
+    console.error('💥 Server Error:', {
+        message: err.message,
+        statusCode,
+        path: req.path,
+        method: req.method,
+        params: req.params,
+        body: req.body,
+        user: req.user ? req.user._id : 'Not authenticated',
+        timestamp: new Date().toISOString()
+    });
+    
+    if (process.env.NODE_ENV === 'development') {
+        console.error('Error stack:', err.stack);
+    }
+    
     res.status(statusCode).json({
         success: false,
         error: err.message,
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        statusCode,
+        path: req.path,
+        ...(process.env.NODE_ENV === 'development' && { 
+            stack: err.stack,
+            details: {
+                params: req.params,
+                body: req.body
+            }
+        })
     });
 });
 
@@ -650,4 +969,8 @@ const port = process.env.PORT || 5000;
 app.listen(port, () => {
     console.log(`🚀 The Campgrounds Backend API running on port ${port}`);
     console.log(`📡 API available at: http://localhost:${port}/api`);
+    
+    // Initialize booking cleanup service
+    console.log('🧹 Initializing booking cleanup service...');
+    BookingCleanupService.scheduleCleanup(60); // Run cleanup every 60 minutes
 }); 

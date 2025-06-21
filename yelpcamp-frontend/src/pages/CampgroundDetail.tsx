@@ -15,9 +15,9 @@ import {
   Carousel
 } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { campgroundsAPI, reviewsAPI, Campground } from '../services/api';
+import { campgroundsAPI, reviewsAPI, bookingAPI, Campground } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { updateIntercomUser } from '../services/intercomService';
+import { updateIntercomUser, trackCampgroundViewed, trackBookingCreated } from '../services/intercomService';
 import CampgroundMap from '../components/CampgroundMap';
 import SEOHead from '../components/SEOHead';
 
@@ -26,6 +26,10 @@ interface CampgroundData {
   stats: {
     averageRating: number;
     totalReviews: number;
+    capacity: number;
+    peopleBooked: number;
+    bookingPercentage: number;
+    availableSpots: number;
   };
 }
 
@@ -40,6 +44,14 @@ const CampgroundDetail: React.FC = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewForm, setReviewForm] = useState({ rating: 5, body: '' });
   const [submittingReview, setSubmittingReview] = useState(false);
+  
+  // Booking modal state
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingForm, setBookingForm] = useState({ 
+    days: 1,
+    checkInDate: new Date().toISOString().split('T')[0] // Default to today
+  });
+  const [submittingBooking, setSubmittingBooking] = useState(false);
 
   const fetchCampgroundData = useCallback(async () => {
     if (!id) return;
@@ -62,6 +74,8 @@ const CampgroundDetail: React.FC = () => {
             campground_views: 'increased'
           };
           updateIntercomUser(updatedUser);
+          // Track campground view event
+          trackCampgroundViewed(response.data.campground, user);
         }
       } else {
         setError('Failed to load campground details');
@@ -117,6 +131,36 @@ const CampgroundDetail: React.FC = () => {
       toast.error('Failed to delete review');
       console.error('Error deleting review:', error);
     }
+  };
+
+  const handleBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !isAuthenticated || !campgroundData) return;
+
+    setSubmittingBooking(true);
+    try {
+      const response = await bookingAPI.create(id, bookingForm);
+      if (response.success) {
+        toast.success('Booking confirmed successfully!');
+        setShowBookingModal(false);
+        setBookingForm({ days: 1, checkInDate: new Date().toISOString().split('T')[0] });
+        // Track successful booking creation
+        if (response.data && response.data.booking) {
+          trackBookingCreated(response.data.booking, user);
+        }
+      } else {
+        toast.error('Failed to create booking');
+      }
+    } catch (error: any) {
+      toast.error('Failed to create booking');
+    } finally {
+      setSubmittingBooking(false);
+    }
+  };
+
+  const calculateTotalPrice = () => {
+    if (!campgroundData) return 0;
+    return campgroundData.campground.price * bookingForm.days;
   };
 
   const renderStars = (rating: number) => {
@@ -374,18 +418,87 @@ const CampgroundDetail: React.FC = () => {
                   <span>Host:</span>
                   <span>{campground.author.username}</span>
                 </ListGroup.Item>
+                <ListGroup.Item className="px-0 d-flex justify-content-between">
+                  <span>Capacity:</span>
+                  <span>{stats.capacity || 'Not specified'} {stats.capacity ? 'people' : ''}</span>
+                </ListGroup.Item>
+                <ListGroup.Item className="px-0 d-flex justify-content-between">
+                  <span>Available spots:</span>
+                  <div className="d-flex align-items-center">
+                    <span className={`me-2 ${(stats.availableSpots || 0) > 0 ? 'text-success' : 'text-danger'}`}>
+                      {stats.availableSpots || 0} spots
+                    </span>
+                    <Badge 
+                      bg={
+                        (stats.bookingPercentage || 0) >= 90 ? 'danger' : 
+                        (stats.bookingPercentage || 0) >= 70 ? 'warning' : 
+                        'success'
+                      }
+                      className="small"
+                    >
+                      {stats.bookingPercentage || 0}% booked
+                    </Badge>
+                  </div>
+                </ListGroup.Item>
+                <ListGroup.Item className="px-0">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <small className="text-muted">Booking Status</small>
+                    <small className="text-muted">
+                      {stats.peopleBooked || 0}/{stats.capacity || 0} people
+                    </small>
+                  </div>
+                  <div className="progress" style={{ height: '8px' }}>
+                    <div 
+                      className={`progress-bar ${
+                        (stats.bookingPercentage || 0) >= 90 ? 'bg-danger' : 
+                        (stats.bookingPercentage || 0) >= 70 ? 'bg-warning' : 
+                        'bg-success'
+                      }`}
+                      role="progressbar" 
+                      style={{ width: `${stats.bookingPercentage || 0}%` }}
+                      aria-valuenow={stats.bookingPercentage || 0}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    ></div>
+                  </div>
+                </ListGroup.Item>
               </ListGroup>
               
               <div className="mt-4">
-                <Button 
-                  variant="primary" 
-                  size="lg" 
-                  className="w-100 mb-3"
-                  disabled
-                  style={{ backgroundColor: '#4a5d23', borderColor: '#4a5d23' }}
-                >
-                  Book Now (Coming Soon)
-                </Button>
+                {isAuthenticated ? (
+                  (stats.availableSpots || 0) > 0 ? (
+                    <Button 
+                      variant="primary" 
+                      size="lg" 
+                      className="w-100 mb-3"
+                      onClick={() => setShowBookingModal(true)}
+                      style={{ backgroundColor: '#4a5d23', borderColor: '#4a5d23' }}
+                    >
+                      Book Now
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="secondary" 
+                      size="lg" 
+                      className="w-100 mb-3"
+                      disabled
+                      style={{ backgroundColor: '#6c757d', borderColor: '#6c757d' }}
+                    >
+                      <i className="fas fa-times-circle me-2"></i>
+                      Fully Booked
+                    </Button>
+                  )
+                ) : (
+                  <Button 
+                    variant="outline-primary" 
+                    size="lg" 
+                    className="w-100 mb-3"
+                    onClick={() => navigate('/login')}
+                    style={{ borderColor: '#4a5d23', color: '#4a5d23' }}
+                  >
+                    Login to Book
+                  </Button>
+                )}
                 <Button 
                   variant="outline-secondary" 
                   className="w-100"
@@ -463,6 +576,88 @@ const CampgroundDetail: React.FC = () => {
                 </>
               ) : (
                 'Submit Review'
+              )}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      {/* Booking Modal */}
+      <Modal show={showBookingModal} onHide={() => setShowBookingModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Book {campgroundData?.campground.title}</Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleBookingSubmit}>
+          <Modal.Body>
+            <div className="mb-4">
+              <h6 className="text-muted">Booking Details</h6>
+              <div className="d-flex justify-content-between mb-2">
+                <span>Price per night:</span>
+                <strong>${campgroundData?.campground.price}</strong>
+              </div>
+              <div className="d-flex justify-content-between mb-2">
+                <span>Available spots:</span>
+                <strong className="text-success">{campgroundData?.stats.availableSpots || 0} remaining</strong>
+              </div>
+            </div>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>Number of days</Form.Label>
+              <Form.Control
+                type="number"
+                min={1}
+                max={30}
+                value={bookingForm.days}
+                onChange={(e) => setBookingForm(prev => ({ ...prev, days: parseInt(e.target.value) || 1 }))}
+                required
+              />
+              <Form.Text className="text-muted">
+                Select how many days you want to stay (1-30 days)
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Check-in Date</Form.Label>
+              <Form.Control
+                type="date"
+                value={bookingForm.checkInDate}
+                onChange={(e) => setBookingForm(prev => ({ ...prev, checkInDate: e.target.value }))}
+                required
+              />
+            </Form.Group>
+
+            <div className="border-top pt-3">
+              <div className="d-flex justify-content-between mb-2">
+                <span>${campgroundData?.campground.price} × {bookingForm.days} day{bookingForm.days !== 1 ? 's' : ''}</span>
+                <span>${calculateTotalPrice()}</span>
+              </div>
+              <div className="d-flex justify-content-between">
+                <strong>Total:</strong>
+                <strong className="text-success">${calculateTotalPrice()}</strong>
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button 
+              variant="secondary" 
+              onClick={() => setShowBookingModal(false)}
+              style={{ backgroundColor: '#6b7280', borderColor: '#6b7280' }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="primary" 
+              disabled={submittingBooking}
+              style={{ backgroundColor: '#4a5d23', borderColor: '#4a5d23' }}
+            >
+              {submittingBooking ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" />
+                  Booking...
+                </>
+              ) : (
+                `Confirm Booking - $${calculateTotalPrice()}`
               )}
             </Button>
           </Modal.Footer>

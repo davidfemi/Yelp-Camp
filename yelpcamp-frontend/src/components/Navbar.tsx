@@ -38,6 +38,10 @@ const Navbar: React.FC = () => {
           <Nav className="ms-auto">
             {isAuthenticated ? (
               <>
+                <Nav.Link as={Link} to="/profile" className="me-2">
+                  <i className="fas fa-user me-1"></i>
+                  Profile
+                </Nav.Link>
                 <BootstrapNavbar.Text className="me-3">
                   Welcome, {user?.username}!
                 </BootstrapNavbar.Text>

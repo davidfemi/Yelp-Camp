@@ -43,15 +43,34 @@ const CampgroundSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: 'Review'
         }
-    ]
+    ],
+    capacity: {
+        type: Number,
+        default: 50,
+        min: 1,
+        max: 500
+    },
+    peopleBooked: {
+        type: Number,
+        default: 0,
+        min: 0
+    }
 }, opts)
 
 CampgroundSchema.virtual('properties.popUpMarkUp').get(function () {
+    const safeDescription = this.description || '';
     return `
-    <strong><a href="/campgrounds/${this._id}">${this.title}</a><strong>
-    <p>${this.description.substring(0, 20)}...</p >`
+    <strong><a href="/campgrounds/${this._id}">${this.title || 'Untitled'}</a><strong>
+    <p>${safeDescription.substring(0, 20)}...</p >`
 })
 
+CampgroundSchema.virtual('bookingPercentage').get(function () {
+    return this.capacity > 0 ? Math.round((this.peopleBooked / this.capacity) * 100) : 0
+})
+
+CampgroundSchema.virtual('availableSpots').get(function () {
+    return Math.max(0, this.capacity - this.peopleBooked)
+})
 
 CampgroundSchema.post('findOneAndDelete', async function (doc) {
     if (doc) {
