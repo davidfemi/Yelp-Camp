@@ -1,0 +1,388 @@
+/* YelpCamp Color System - Based on Logo */
+:root {
+  /* Primary Colors - From Logo */
+  --yc-primary: #4a5d23;           /* Main green from logo */
+  --yc-primary-light: #6b8c2f;    /* Lighter green */
+  --yc-primary-dark: #3a4a1c;     /* Darker green */
+  --yc-primary-50: #f6f8f3;       /* Very light green tint */
+  --yc-primary-100: #e8f0dc;      /* Light green tint */
+  
+  /* Secondary Colors */
+  --yc-cream: #f5f3f0;            /* Background cream from logo */
+  --yc-cream-dark: #ede8e3;       /* Slightly darker cream */
+  --yc-beige: #e8e4dd;            /* Warm beige */
+  
+  /* Accent Colors */
+  --yc-forest: #2d3d18;           /* Deep forest green */
+  --yc-sage: #8fa068;             /* Sage green accent */
+  --yc-earth: #a67c5c;            /* Earth brown */
+  
+  /* Neutral Colors */
+  --yc-gray-50: #f9fafb;
+  --yc-gray-100: #f3f4f6;
+  --yc-gray-200: #e5e7eb;
+  --yc-gray-300: #d1d5db;
+  --yc-gray-400: #9ca3af;
+  --yc-gray-500: #6b7280;
+  --yc-gray-600: #4b5563;
+  --yc-gray-700: #374151;
+  --yc-gray-800: #1f2937;
+  --yc-gray-900: #111827;
+  
+  /* Status Colors */
+  --yc-success: #10b981;          /* Green success */
+  --yc-warning: #f59e0b;          /* Amber warning */
+  --yc-error: #ef4444;            /* Red error */
+  --yc-info: var(--yc-primary);   /* Use primary for info */
+  
+  /* Typography */
+  --yc-text-primary: var(--yc-gray-900);
+  --yc-text-secondary: var(--yc-gray-600);
+  --yc-text-muted: var(--yc-gray-500);
+  --yc-text-light: var(--yc-gray-400);
+  
+  /* Background Colors */
+  --yc-bg-primary: white;
+  --yc-bg-secondary: var(--yc-cream);
+  --yc-bg-tertiary: var(--yc-primary-50);
+  --yc-bg-dark: var(--yc-forest);
+  
+  /* Border Colors */
+  --yc-border-light: var(--yc-gray-200);
+  --yc-border-medium: var(--yc-gray-300);
+  --yc-border-dark: var(--yc-gray-400);
+  
+  /* Shadow Colors */
+  --yc-shadow-sm: 0 1px 2px 0 rgba(74, 93, 35, 0.05);
+  --yc-shadow: 0 1px 3px 0 rgba(74, 93, 35, 0.1), 0 1px 2px 0 rgba(74, 93, 35, 0.06);
+  --yc-shadow-md: 0 4px 6px -1px rgba(74, 93, 35, 0.1), 0 2px 4px -1px rgba(74, 93, 35, 0.06);
+  --yc-shadow-lg: 0 10px 15px -3px rgba(74, 93, 35, 0.1), 0 4px 6px -2px rgba(74, 93, 35, 0.05);
+  --yc-shadow-xl: 0 20px 25px -5px rgba(74, 93, 35, 0.1), 0 10px 10px -5px rgba(74, 93, 35, 0.04);
+  
+  /* Gradients */
+  --yc-gradient-primary: linear-gradient(135deg, var(--yc-primary) 0%, var(--yc-primary-dark) 100%);
+  --yc-gradient-sage: linear-gradient(135deg, var(--yc-sage) 0%, var(--yc-primary) 100%);
+  --yc-gradient-earth: linear-gradient(135deg, var(--yc-cream) 0%, var(--yc-beige) 100%);
+  --yc-gradient-hero: linear-gradient(135deg, var(--yc-primary) 0%, var(--yc-forest) 100%);
+}
+
+/* Base Styling */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--yc-bg-secondary);
+  color: var(--yc-text-primary);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Override Bootstrap Primary Colors */
+.btn-primary {
+  background-color: var(--yc-primary);
+  border-color: var(--yc-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--yc-primary-dark);
+  border-color: var(--yc-primary-dark);
+  color: white;
+}
+
+.btn-primary:focus,
+.btn-primary.focus {
+  box-shadow: 0 0 0 0.2rem rgba(74, 93, 35, 0.25);
+}
+
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-primary:not(:disabled):not(.disabled).active {
+  background-color: var(--yc-primary-dark);
+  border-color: var(--yc-primary-dark);
+}
+
+/* Secondary Button */
+.btn-outline-primary {
+  color: var(--yc-primary);
+  border-color: var(--yc-primary);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--yc-primary);
+  border-color: var(--yc-primary);
+  color: white;
+}
+
+/* Success Button */
+.btn-success {
+  background-color: var(--yc-success);
+  border-color: var(--yc-success);
+}
+
+.btn-success:hover {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+/* Links */
+a {
+  color: var(--yc-primary);
+}
+
+a:hover {
+  color: var(--yc-primary-dark);
+}
+
+/* Form Controls */
+.form-control:focus {
+  border-color: var(--yc-primary);
+  box-shadow: 0 0 0 0.2rem rgba(74, 93, 35, 0.25);
+}
+
+.form-select:focus {
+  border-color: var(--yc-primary);
+  box-shadow: 0 0 0 0.2rem rgba(74, 93, 35, 0.25);
+}
+
+/* Navbar Theming */
+.navbar-light {
+  background-color: white !important;
+  box-shadow: var(--yc-shadow);
+  border-bottom: 1px solid var(--yc-border-light);
+}
+
+.navbar-brand {
+  color: var(--yc-primary) !important;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.navbar-brand:hover {
+  color: var(--yc-primary-dark) !important;
+}
+
+.navbar-nav .nav-link {
+  color: var(--yc-primary) !important;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--yc-primary-dark) !important;
+}
+
+.navbar-nav .nav-link:focus {
+  color: var(--yc-primary-dark) !important;
+}
+
+/* Active nav link */
+.navbar-nav .nav-link.active {
+  color: var(--yc-primary-dark) !important;
+  font-weight: 600;
+}
+
+/* Navbar toggler for mobile */
+.navbar-toggler {
+  border-color: var(--yc-primary);
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 0.2rem rgba(74, 93, 35, 0.25);
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2874, 93, 35, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Cards */
+.card {
+  border: 1px solid var(--yc-border-light);
+  box-shadow: var(--yc-shadow-sm);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: var(--yc-bg-primary);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--yc-shadow-md);
+}
+
+.card-header {
+  background-color: var(--yc-bg-tertiary);
+  border-bottom: 1px solid var(--yc-border-light);
+}
+
+/* Alerts */
+.alert-info {
+  background-color: var(--yc-primary-50);
+  border-color: var(--yc-primary-100);
+  color: var(--yc-primary-dark);
+}
+
+.alert-success {
+  background-color: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.alert-danger {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.alert-warning {
+  background-color: #fffbeb;
+  border-color: #fed7aa;
+  color: #92400e;
+}
+
+/* Badge/Pill Theming */
+.badge {
+  background-color: var(--yc-primary);
+}
+
+.badge.bg-success {
+  background-color: var(--yc-success) !important;
+}
+
+.text-primary {
+  color: var(--yc-primary) !important;
+}
+
+.text-success {
+  color: var(--yc-success) !important;
+}
+
+.text-muted {
+  color: var(--yc-text-muted) !important;
+}
+
+.bg-primary {
+  background: var(--yc-gradient-primary) !important;
+}
+
+.bg-light {
+  background-color: var(--yc-bg-secondary) !important;
+}
+
+/* Pagination */
+.pagination .page-link {
+  color: var(--yc-primary);
+  border-color: var(--yc-border-light);
+}
+
+.pagination .page-link:hover {
+  color: var(--yc-primary-dark);
+  background-color: var(--yc-primary-50);
+  border-color: var(--yc-primary);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: var(--yc-primary);
+  border-color: var(--yc-primary);
+}
+
+/* Carousel Styling for Uniform Images */
+.carousel-item img {
+  border-radius: 8px;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+  width: 5%;
+  opacity: 0.8;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+  opacity: 1;
+}
+
+/* Ensure carousel indicators are visible */
+.carousel-indicators {
+  bottom: 15px;
+}
+
+.carousel-indicators [data-bs-target] {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.carousel-indicators .active {
+  background-color: #fff;
+}
+
+/* Map styling */
+.mapboxgl-popup {
+  max-width: 250px;
+}
+
+.mapboxgl-popup-content {
+  border-radius: 8px;
+  box-shadow: var(--yc-shadow-md);
+  border: 1px solid var(--yc-border-light);
+}
+
+.mapboxgl-popup-content h6 {
+  margin-bottom: 5px;
+  color: var(--yc-text-primary);
+}
+
+/* Custom YelpCamp Utilities */
+.yc-bg-gradient-primary {
+  background: var(--yc-gradient-primary);
+}
+
+.yc-bg-gradient-sage {
+  background: var(--yc-gradient-sage);
+}
+
+.yc-bg-gradient-earth {
+  background: var(--yc-gradient-earth);
+}
+
+.yc-text-primary {
+  color: var(--yc-primary);
+}
+
+.yc-text-forest {
+  color: var(--yc-forest);
+}
+
+.yc-text-sage {
+  color: var(--yc-sage);
+}
+
+.yc-border-primary {
+  border-color: var(--yc-primary);
+}
+
+.yc-shadow {
+  box-shadow: var(--yc-shadow);
+}
+
+.yc-shadow-md {
+  box-shadow: var(--yc-shadow-md);
+}
+
+.yc-shadow-lg {
+  box-shadow: var(--yc-shadow-lg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .carousel-item {
+    height: 250px !important;
+  }
+  
+  .carousel-item img {
+    height: 250px !important;
+  }
+}
