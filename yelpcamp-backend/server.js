@@ -84,6 +84,8 @@ app.use(session(sessionConfig));
 app.use((req, res, next) => {
     if (process.env.NODE_ENV === 'production') {
         console.log(`🔐 Session Debug - Path: ${req.path}, Session ID: ${req.sessionID || 'none'}, Authenticated: ${req.isAuthenticated ? req.isAuthenticated() : false}`);
+        console.log(`🍪 Cookie Debug - Headers: ${JSON.stringify(req.headers.cookie || 'no cookies')}`);
+        console.log(`🌐 Origin Debug - Origin: ${req.headers.origin || 'no origin'}, Host: ${req.headers.host}`);
     }
     next();
 });
