@@ -19,6 +19,7 @@ const Booking = require('./models/booking');
 // Import utilities
 const ExpressError = require('./utils/ExpressError');
 const catchAsync = require('./utils/catchAsync');
+const { validateApiToken, apiRateLimit } = require('./utils/apiKeyAuth');
 
 // Import Mapbox geocoding
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
@@ -655,6 +656,85 @@ app.get('/api/bookings', isLoggedIn, catchAsync(async (req, res) => {
         });
     } catch (error) {
         console.error('💥 Error fetching bookings:', error);
+        throw error;
+    }
+}));
+
+// API Token Protected Endpoint - Get bookings by user_id
+app.get('/api/booking/:user_id', apiRateLimit, validateApiToken, catchAsync(async (req, res) => {
+    const { user_id } = req.params;
+    
+    console.log(`🔄 API request: Fetching bookings for user_id: ${user_id}`);
+    
+    try {
+        // Validate user_id format
+        if (!mongoose.Types.ObjectId.isValid(user_id)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid user_id format'
+            });
+        }
+
+        // Check if user exists
+        const user = await User.findById(user_id);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                error: 'User not found'
+            });
+        }
+
+        // Get bookings for the specified user
+        const bookings = await Booking.find({ user: user_id })
+            .populate('campground', 'title location price images')
+            .populate('user', 'username email')
+            .sort({ createdAt: -1 });
+
+        console.log(`📊 Found ${bookings.length} bookings for user_id: ${user_id}`);
+        
+        // Clean the booking data
+        const cleanBookings = bookings.map(booking => {
+            const bookingObj = booking.toObject();
+            
+            // Ensure campground data is clean
+            if (bookingObj.campground) {
+                bookingObj.campground = {
+                    _id: bookingObj.campground._id,
+                    title: bookingObj.campground.title || 'Untitled Campground',
+                    location: bookingObj.campground.location || 'Unknown Location',
+                    price: bookingObj.campground.price || 0,
+                    images: bookingObj.campground.images || []
+                };
+            }
+            
+            // Clean user data
+            if (bookingObj.user) {
+                bookingObj.user = {
+                    _id: bookingObj.user._id,
+                    username: bookingObj.user.username,
+                    email: bookingObj.user.email
+                };
+            }
+            
+            return bookingObj;
+        });
+
+        console.log('✅ API request: Bookings data cleaned and ready to send');
+        
+        res.json({
+            success: true,
+            data: { 
+                bookings: cleanBookings,
+                user: {
+                    _id: user._id,
+                    username: user.username,
+                    email: user.email
+                },
+                total: cleanBookings.length
+            }
+        });
+    } catch (error) {
+        console.error('💥 API request error:', error);
         throw error;
     }
 }));

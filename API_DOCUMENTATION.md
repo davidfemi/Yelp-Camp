@@ -370,6 +370,118 @@ Get campgrounds by category type.
 **Query Parameters:**
 - `limit` (number): Maximum results (default: 20)
 
+## API Key Authentication
+
+The API supports session-free access using API key authentication for specific endpoints. This allows external applications to access data programmatically.
+
+### API Key Setup
+
+Add to your environment variables:
+```bash
+API_ACCESS_TOKEN=your-secure-api-token-here
+```
+
+### API Key Endpoints
+
+#### Get Bookings by User ID
+**GET** `/api/booking/:user_id`
+
+Get all bookings for a specific user. **Requires API key authentication.**
+
+**Headers:**
+```
+Authorization: Bearer YOUR_API_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Parameters:**
+- `user_id` (string): MongoDB ObjectId of the user
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "bookings": [
+      {
+        "_id": "64f8a123456789abcdef0125",
+        "user": {
+          "_id": "64f8a123456789abcdef0123",
+          "username": "johndoe",
+          "email": "john@example.com"
+        },
+        "campground": {
+          "_id": "64f8a123456789abcdef0126",
+          "title": "Mountain View Campground",
+          "location": "Yosemite, CA",
+          "price": 45,
+          "images": [...]
+        },
+        "days": 3,
+        "totalPrice": 135,
+        "status": "confirmed",
+        "checkInDate": "2024-01-15T00:00:00.000Z",
+        "checkOutDate": "2024-01-18T00:00:00.000Z",
+        "createdAt": "2024-01-10T12:00:00.000Z"
+      }
+    ],
+    "user": {
+      "_id": "64f8a123456789abcdef0123",
+      "username": "johndoe",
+      "email": "john@example.com"
+    },
+    "total": 1
+  }
+}
+```
+
+**Example Request:**
+```bash
+curl -X GET "https://yelpcamp-vvv2.onrender.com/api/booking/64f8a123456789abcdef0123" \
+  -H "Authorization: Bearer your-api-access-token" \
+  -H "Content-Type: application/json"
+```
+
+**JavaScript Example:**
+```javascript
+const getBookingsForUser = async (userId, apiToken) => {
+  const response = await fetch(`https://yelpcamp-vvv2.onrender.com/api/booking/${userId}`, {
+    headers: {
+      'Authorization': `Bearer ${apiToken}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  return response.json();
+};
+```
+
+### API Key Error Responses
+
+**Invalid API Token (401):**
+```json
+{
+  "success": false,
+  "error": "Invalid API token"
+}
+```
+
+**Missing Authorization Header (401):**
+```json
+{
+  "success": false,
+  "error": "Missing or invalid Authorization header. Use: Authorization: Bearer YOUR_API_TOKEN"
+}
+```
+
+**Rate Limit Exceeded (429):**
+```json
+{
+  "success": false,
+  "error": "Too many API requests, please try again later.",
+  "retryAfter": "15 minutes"
+}
+```
+
 ## Statistics Endpoint
 
 ### Get Application Stats
@@ -443,7 +555,14 @@ Get application statistics.
 
 ## Rate Limiting
 
-API requests are not currently rate-limited, but this may be implemented in future versions.
+### Session-Based Endpoints
+Session-based API requests (using cookies) are not currently rate-limited, but this may be implemented in future versions.
+
+### API Key Endpoints
+API key authenticated endpoints have rate limiting enabled:
+- **100 requests per 15 minutes** per IP address
+- Applies to endpoints using `Authorization: Bearer` header
+- Helps prevent API abuse and ensures fair usage
 
 ## CORS
 
