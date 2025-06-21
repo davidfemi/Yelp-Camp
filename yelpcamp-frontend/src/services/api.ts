@@ -1,9 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 
-  (process.env.NODE_ENV === 'production' 
-    ? 'https://yelpcamp-vvv2.onrender.com' 
-    : 'http://localhost:5000');
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -12,28 +9,13 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 second timeout for production
 });
-
-// Log API configuration for debugging
-if (process.env.NODE_ENV === 'production') {
-  console.log(`🌐 API Base URL: ${API_BASE_URL}`);
-}
 
 // Types
 export interface User {
   id: string;
   username: string;
   email: string;
-}
-
-export interface UserProfile extends User {
-  createdAt: string;
-  stats: {
-    campgrounds: number;
-    bookings: number;
-    reviews: number;
-  };
 }
 
 export interface Campground {
@@ -55,10 +37,6 @@ export interface Campground {
     type: string;
     coordinates: [number, number];
   };
-  capacity?: number;
-  peopleBooked?: number;
-  bookingPercentage?: number;
-  availableSpots?: number;
 }
 
 export interface Review {
@@ -112,9 +90,7 @@ export interface Booking {
   };
   days: number;
   totalPrice: number;
-  status: 'confirmed' | 'cancelled' | 'expired';
-  checkInDate: string;
-  checkOutDate: string;
+  status: 'confirmed' | 'cancelled';
   createdAt: string;
 }
 
@@ -141,14 +117,6 @@ export const authAPI = {
   },
 };
 
-// User Profile API
-export const userAPI = {
-  getProfile: async () => {
-    const response = await api.get<ApiResponse<{ user: UserProfile }>>('/api/users/profile');
-    return response.data;
-  },
-};
-
 // Campgrounds API
 export const campgroundsAPI = {
   getAll: async (params?: {
@@ -166,17 +134,7 @@ export const campgroundsAPI = {
   },
 
   getById: async (id: string) => {
-    const response = await api.get<ApiResponse<{ 
-      campground: Campground; 
-      stats: { 
-        averageRating: number; 
-        totalReviews: number;
-        capacity: number;
-        peopleBooked: number;
-        bookingPercentage: number;
-        availableSpots: number;
-      } 
-    }>>(`/api/campgrounds/${id}`);
+    const response = await api.get<ApiResponse<{ campground: Campground; stats: { averageRating: number; totalReviews: number } }>>(`/api/campgrounds/${id}`);
     return response.data;
   },
 
@@ -244,7 +202,7 @@ export const statsAPI = {
 
 // Booking API
 export const bookingAPI = {
-  create: async (campgroundId: string, bookingData: { days: number; checkInDate: string }) => {
+  create: async (campgroundId: string, bookingData: { days: number }) => {
     const response = await api.post<ApiResponse<{ booking: Booking }>>(`/api/campgrounds/${campgroundId}/bookings`, bookingData);
     return response.data;
   },
