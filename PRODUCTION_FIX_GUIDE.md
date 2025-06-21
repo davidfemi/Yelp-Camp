@@ -1,4 +1,27 @@
-# Production Authentication Fix Guide
+# Production Authentication Fix Guide - CRITICAL UPDATE
+
+## 🚨 Issue Identified: Set-Cookie Headers Not Being Sent
+
+**Problem:** Login works but session cookies aren't being sent to the browser, causing 401 errors on subsequent requests.
+
+**Root Cause:** Express-session not properly setting Set-Cookie headers for cross-origin production deployment.
+
+## 🔧 Latest Fixes Applied
+
+### 1. Session Store Configuration Fixed
+- **REMOVED** deprecated `mongoOptions.useUnifiedTopology` causing MongoDB warnings
+- **CHANGED** `saveUninitialized: true` to force session creation 
+- **ADDED** explicit `path: '/'` for cookie path
+
+### 2. Forced Session Cookie Creation
+- **ADDED** middleware to manually set session cookies in production
+- **ADDED** session save callback with error handling in login endpoint
+- **ADDED** enhanced debugging to track Set-Cookie header generation
+
+### 3. Enhanced Debugging
+- **ADDED** session save confirmation logging
+- **ADDED** headers inspection before response
+- **ADDED** manual cookie setting with detailed logging
 
 ## 🚨 Critical Environment Variables Required
 
@@ -26,24 +49,6 @@ CLOUDINARY_KEY=your_api_key
 CLOUDINARY_SECRET=your_api_secret
 API_ACCESS_TOKEN=your-secure-api-token
 ```
-
-## 🔧 Fixes Applied to Backend
-
-### 1. Session Configuration Fixed
-- Removed deprecated MongoDB options (`useNewUrlParser`, `useUnifiedTopology`)
-- Enhanced session cookie settings for cross-origin deployment
-- Added session rolling to maintain authentication
-- Improved cookie domain handling
-
-### 2. CORS Configuration Enhanced
-- Added explicit frontend URL whitelist
-- Improved origin validation
-- Added proper headers for cross-origin cookies
-- Enhanced error logging for blocked origins
-
-### 3. Security Headers Updated
-- Added cross-origin embedder policy allowance
-- Maintained CSRF protection while allowing cross-origin requests
 
 ## 🚀 Deployment Steps
 
@@ -89,9 +94,11 @@ After redeployment, test:
 ## 📋 Expected Log Changes
 
 After the fix, you should see in production logs:
-- `Set-Cookie` headers being sent (not "no set-cookie headers")
+- `💾 Session saved successfully`
+- `🔧 Forcing session cookie creation`
+- `🍪 Manually set session cookie: [cookie details]`
 - `Authenticated: true` for protected routes
-- Successful CORS origin validation
+- **NO MORE** MongoDB deprecation warnings
 
 ## 🆘 If Issues Persist
 
@@ -102,11 +109,16 @@ After the fix, you should see in production logs:
 2. **Browser Testing:**
    - Clear cookies and try fresh login
    - Check if cookies are being set in browser dev tools
+   - Look for the `thecampgrounds.session` cookie
 
 3. **Network Tab:**
    - Verify `withCredentials: true` in requests
    - Check for CORS preflight OPTIONS requests
+   - Look for `Set-Cookie` headers in login response
 
 ## 🔄 Rollback Plan
 
-If issues persist, the original working configuration can be restored by reverting the session configuration changes in `server.js`. 
+If issues persist, the original configuration can be restored by:
+1. Reverting the session configuration changes in `server.js`
+2. Removing the forced cookie middleware
+3. Restoring `saveUninitialized: false` 

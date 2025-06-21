@@ -82,10 +82,7 @@ const secret = process.env.SECRET || 'thisshouldbeabettersecret!';
 const store = MongoDBStore.create({
     mongoUrl: dbUrl,
     secret: secret,
-    touchAfter: 24 * 60 * 60,
-    mongoOptions: {
-        useUnifiedTopology: true
-    }
+    touchAfter: 24 * 60 * 60
 });
 
 store.on("error", function (e) {
@@ -98,18 +95,45 @@ const sessionConfig = {
     name: 'thecampgrounds.session',
     secret: secret,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Changed to true for production
     rolling: true, // Reset expiration on each request
     cookie: {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
-        domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Let browser handle domain
+        path: '/' // Explicitly set path
     }
 };
 
 app.use(session(sessionConfig));
+
+// Force session cookie middleware for production
+app.use((req, res, next) => {
+    if (process.env.NODE_ENV === 'production') {
+        // Ensure session is touched to force cookie creation
+        req.session.touch();
+        
+        // Override res.json to ensure Set-Cookie header is set
+        const originalJson = res.json;
+        res.json = function(data) {
+            // Force session cookie to be set
+            if (!res.headersSent && req.session) {
+                const cookieHeader = req.sessionStore.name || 'thecampgrounds.session';
+                console.log(`🔧 Forcing session cookie creation for ${req.path}`);
+                
+                // Manually set the session cookie if it's not already set
+                if (!res.getHeader('Set-Cookie')) {
+                    const sessionCookie = `${cookieHeader}=${req.sessionID}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800`;
+                    res.setHeader('Set-Cookie', sessionCookie);
+                    console.log(`🍪 Manually set session cookie: ${sessionCookie}`);
+                }
+            }
+            return originalJson.call(this, data);
+        };
+    }
+    next();
+});
 
 // Enhanced session debugging middleware
 app.use((req, res, next) => {
@@ -236,16 +260,30 @@ app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
     console.log(`🔐 Session ID after login: ${req.sessionID}`);
     console.log(`🍪 Session cookie config: ${JSON.stringify(req.session.cookie)}`);
     
-    res.json({
-        success: true,
-        data: {
-            user: {
-                id: req.user._id,
-                username: req.user.username,
-                email: req.user.email
-            }
-        },
-        message: 'Login successful'
+    // Force session save and send response
+    req.session.save((err) => {
+        if (err) {
+            console.error('❌ Session save error:', err);
+            return res.status(500).json({
+                success: false,
+                error: 'Session save failed'
+            });
+        }
+        
+        console.log(`💾 Session saved successfully`);
+        console.log(`🔄 Headers before response: ${JSON.stringify(res.getHeaders())}`);
+        
+        res.json({
+            success: true,
+            data: {
+                user: {
+                    id: req.user._id,
+                    username: req.user.username,
+                    email: req.user.email
+                }
+            },
+            message: 'Login successful'
+        });
     });
 });
 
