@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { statsAPI } from '../services/api';
-import { useAuth } from '../context/AuthContext';
 import SEOHead from '../components/SEOHead';
 
 const Home: React.FC = () => {

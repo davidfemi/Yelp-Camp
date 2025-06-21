@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Row, 
@@ -7,13 +7,9 @@ import {
   Card, 
   Button, 
   Form, 
-  InputGroup, 
-  Spinner, 
-  Alert,
-  Pagination,
-  Badge
+  Alert
 } from 'react-bootstrap';
-import { campgroundsAPI, Campground, PaginationInfo } from '../services/api';
+import { campgroundsAPI, Campground } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import CampgroundsMap from '../components/CampgroundsMap';
 import LoadingScreen from '../components/LoadingScreen';

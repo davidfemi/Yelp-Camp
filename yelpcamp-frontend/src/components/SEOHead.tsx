@@ -31,11 +31,6 @@ const SEOHead: React.FC<SEOHeadProps> = ({
     ? `${description} Located in ${location}, starting at $${price}/night.${rating ? ` Rated ${rating}/5 stars` : ''}${reviewCount ? ` with ${reviewCount} reviews` : ''}.`
     : description;
 
-  // Enhanced keywords for campground pages
-  const enhancedKeywords = location 
-    ? `${keywords}, ${location}, campground near ${location}, camping ${location}`
-    : keywords;
-
   // Create structured data for campgrounds
   const structuredData = location && price ? {
     "@context": "https://schema.org",
