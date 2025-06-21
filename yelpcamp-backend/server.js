@@ -72,12 +72,21 @@ const sessionConfig = {
     cookie: {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
 };
 
 app.use(session(sessionConfig));
+
+// Session debugging middleware (helpful for troubleshooting)
+app.use((req, res, next) => {
+    if (process.env.NODE_ENV === 'production') {
+        console.log(`🔐 Session Debug - Path: ${req.path}, Session ID: ${req.sessionID || 'none'}, Authenticated: ${req.isAuthenticated ? req.isAuthenticated() : false}`);
+    }
+    next();
+});
 
 // Passport configuration
 app.use(passport.initialize());
