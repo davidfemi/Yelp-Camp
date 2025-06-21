@@ -28,12 +28,9 @@ const geocoder = mbxGeocoding({ accessToken: mapBoxToken });
 
 const app = express();
 
-// Database connection
+// Database connection - removed deprecated options
 const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/myFirstDatabase';
-mongoose.connect(dbUrl, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+mongoose.connect(dbUrl);
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -45,53 +42,94 @@ mongoose.set('strictQuery', true);
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-    origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:5173'],
-    credentials: true
-}));
+
+// Enhanced CORS configuration for production
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests from the frontend URLs
+        const allowedOrigins = [
+            'https://thecampground.vercel.app',
+            'http://localhost:3000',
+            'http://localhost:5173'
+        ];
+        
+        // If FRONTEND_URL environment variable is set, use it
+        if (process.env.FRONTEND_URL) {
+            allowedOrigins.push(process.env.FRONTEND_URL);
+        }
+        
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log(`❌ CORS blocked origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Set-Cookie']
+};
+
+app.use(cors(corsOptions));
 app.use(mongoSanitize({ replaceWith: '_' }));
 
-// Session configuration
+// Session configuration - improved for production
 const secret = process.env.SECRET || 'thisshouldbeabettersecret!';
 const store = MongoDBStore.create({
     mongoUrl: dbUrl,
     secret: secret,
-    touchAfter: 24 * 60 * 60
+    touchAfter: 24 * 60 * 60,
+    mongoOptions: {
+        useUnifiedTopology: true
+    }
 });
 
 store.on("error", function (e) {
     console.log("SESSION STORE ERROR", e);
 });
 
+// Enhanced session configuration for cross-origin deployment
 const sessionConfig = {
     store,
     name: 'thecampgrounds.session',
     secret: secret,
     resave: false,
     saveUninitialized: false,
+    rolling: true, // Reset expiration on each request
     cookie: {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-        maxAge: 1000 * 60 * 60 * 24 * 7
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        domain: process.env.NODE_ENV === 'production' ? undefined : undefined // Let browser handle domain
     }
 };
 
 app.use(session(sessionConfig));
 
-// Session debugging middleware (helpful for troubleshooting)
+// Enhanced session debugging middleware
 app.use((req, res, next) => {
     if (process.env.NODE_ENV === 'production') {
         console.log(`🔐 Session Debug - Path: ${req.path}, Session ID: ${req.sessionID || 'none'}, Authenticated: ${req.isAuthenticated ? req.isAuthenticated() : false}`);
         console.log(`🍪 Cookie Debug - Headers: ${JSON.stringify(req.headers.cookie || 'no cookies')}`);
         console.log(`🌐 Origin Debug - Origin: ${req.headers.origin || 'no origin'}, Host: ${req.headers.host}`);
         
-        // Add response debugging
+        // Enhanced response debugging
         const originalSend = res.send;
+        const originalJson = res.json;
+        
         res.send = function(data) {
             console.log(`📤 Response Debug - Set-Cookie: ${JSON.stringify(res.getHeaders()['set-cookie'] || 'no set-cookie headers')}`);
             return originalSend.call(this, data);
+        };
+        
+        res.json = function(data) {
+            console.log(`📤 Response Debug - Set-Cookie: ${JSON.stringify(res.getHeaders()['set-cookie'] || 'no set-cookie headers')}`);
+            return originalJson.call(this, data);
         };
     }
     next();
@@ -106,17 +144,23 @@ passport.deserializeUser(User.deserializeUser());
 
 // Security middleware
 app.use(helmet({
-    contentSecurityPolicy: false // Disable CSP for API
+    contentSecurityPolicy: false, // Disable CSP for API
+    crossOriginEmbedderPolicy: false // Allow cross-origin requests
 }));
 
 // Authentication middleware
 const isLoggedIn = (req, res, next) => {
+    console.log(`🔒 Auth check for ${req.path} - Session ID: ${req.sessionID}, User: ${req.user ? req.user._id : 'none'}`);
+    
     if (!req.isAuthenticated()) {
+        console.log(`❌ Authentication failed for ${req.path} - User not authenticated`);
         return res.status(401).json({
             success: false,
             error: 'Authentication required'
         });
     }
+    
+    console.log(`✅ Authentication successful for ${req.path} - User: ${req.user._id}`);
     next();
 };
 
@@ -188,6 +232,10 @@ app.post('/api/auth/register', catchAsync(async (req, res) => {
 }));
 
 app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
+    console.log(`✅ Login successful for user: ${req.user.username} (ID: ${req.user._id})`);
+    console.log(`🔐 Session ID after login: ${req.sessionID}`);
+    console.log(`🍪 Session cookie config: ${JSON.stringify(req.session.cookie)}`);
+    
     res.json({
         success: true,
         data: {

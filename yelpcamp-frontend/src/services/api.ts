@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (process.env.NODE_ENV === 'production' 
+    ? 'https://yelpcamp-vvv2.onrender.com' 
+    : 'http://localhost:5000');
 
 // Create axios instance with default config
 const api = axios.create({
@@ -9,7 +12,13 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 second timeout for production
 });
+
+// Log API configuration for debugging
+if (process.env.NODE_ENV === 'production') {
+  console.log(`🌐 API Base URL: ${API_BASE_URL}`);
+}
 
 // Types
 export interface User {
