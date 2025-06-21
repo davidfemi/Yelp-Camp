@@ -1,0 +1,23 @@
+{
+  "name": "yelpcamp-monorepo",
+  "version": "1.0.0",
+  "description": "YelpCamp Full Stack Application",
+  "scripts": {
+    "build": "cd yelpcamp-backend && npm ci",
+    "start": "cd yelpcamp-backend && npm start",
+    "dev": "cd yelpcamp-backend && npm run dev",
+    "postinstall": "cd yelpcamp-backend && npm install"
+  },
+  "keywords": [
+    "yelpcamp",
+    "fullstack",
+    "express",
+    "react",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+} 
