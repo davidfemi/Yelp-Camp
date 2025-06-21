@@ -1,18 +1,20 @@
 {
-  "name": "yelpcamp-backend",
+  "name": "the-campgrounds-backend",
   "version": "1.0.0",
-  "description": "YelpCamp Backend API",
+  "description": "The Campgrounds Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "echo 'No build step required for backend API'",
+    "prestart": "npm install",
+    "build": "npm install",
     "postinstall": "echo 'Backend dependencies installed successfully'",
     "dev": "nodemon server.js",
     "enhance-descriptions": "node enhance-descriptions.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "yelpcamp",
+    "the-campgrounds",
+    "campgrounds",
     "api",
     "express",
     "mongodb"
@@ -27,7 +29,7 @@
     "connect-flash": "^0.1.1",
     "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "ejs-mate": "^4.0.0",
     "express": "^4.19.2",

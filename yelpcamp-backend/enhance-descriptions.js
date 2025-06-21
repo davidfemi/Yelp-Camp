@@ -222,7 +222,7 @@ const processBatch = async (batch, batchNumber, totalBatches) => {
 const enhanceAllDescriptions = async () => {
     try {
         // Connect to database
-        const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelpcamp';
+        const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/thecampgrounds';
         await mongoose.connect(dbUrl);
         console.log('✅ Connected to database');
 

@@ -1,7 +1,7 @@
-# YelpCamp Favicon & Icon Setup Guide
+# The Campgrounds Favicon & Icon Setup Guide
 
 ## Overview
-This guide explains how to generate all the necessary favicon files from the YelpCamp logo and implement them correctly.
+This guide explains how to generate all the necessary favicon files from The Campgrounds logo and implement them correctly.
 
 ## Required Favicon Files
 
@@ -132,8 +132,8 @@ Cmd+Shift+R (Mac)
 ✅ **HTML Head Tags**: Updated in `public/index.html`
 ✅ **Web App Manifest**: Updated in `public/manifest.json`  
 ✅ **Meta Tags**: Added Open Graph and Twitter Card meta tags
-✅ **Theme Colors**: Set to YelpCamp brand colors
-✅ **Splash Screen**: Built-in CSS animation with YelpCamp logo
+✅ **Theme Colors**: Set to The Campgrounds brand colors
+✅ **Splash Screen**: Built-in CSS animation with The Campgrounds logo
 ✅ **Loading Components**: `LoadingScreen` and `LoadingSpinner` components created
 
 ## Next Steps
@@ -147,7 +147,7 @@ Cmd+Shift+R (Mac)
 
 ## Brand Colors Used
 
-- **Primary Green**: `#4a5d23` (YelpCamp logo color)
+- **Primary Green**: `#4a5d23` (The Campgrounds logo color)
 - **Background Cream**: `#f5f3f0` (Light neutral background)
 - **Accent Gray**: `#6b7280` (Text and subtle elements)
 

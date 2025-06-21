@@ -1,7 +1,7 @@
-# YelpCamp Color System
+# The Campgrounds Color System
 
 ## Overview
-The YelpCamp color system is derived from our logo and creates a cohesive, outdoor-themed design that reflects our camping and nature focus.
+The The Campgrounds color system is derived from our logo and creates a cohesive, outdoor-themed design that reflects our camping and nature focus.
 
 ## Brand Colors
 
@@ -49,6 +49,8 @@ The YelpCamp color system is derived from our logo and creates a cohesive, outdo
 // Custom YelpCamp buttons
 <Button className="btn-yc-sage">Explore</Button>
 <Button className="btn-yc-earth">Filter</Button>
+
+// Custom The Campgrounds buttons
 ```
 
 ### Backgrounds
@@ -230,7 +232,7 @@ Old Bootstrap classes are automatically updated:
 
 - `.btn-primary` → Now uses `--yc-primary`
 - `.text-primary` → Now uses `--yc-primary`  
-- `.bg-primary` → Now uses YelpCamp gradient
-- `.alert-info` → Now uses YelpCamp primary colors
+- `.bg-primary` → Now uses The Campgrounds gradient
+- `.alert-info` → Now uses The Campgrounds primary colors
 
 No code changes needed - existing components will automatically use the new color system! 

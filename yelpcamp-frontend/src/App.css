@@ -103,7 +103,33 @@ main {
   font-size: 1.125rem;
 }
 
-/* YelpCamp specific buttons */
+/* Logout button styling */
+.btn-logout {
+  background-color: transparent;
+  border-color: var(--yc-primary);
+  color: var(--yc-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+  background-color: var(--yc-primary);
+  border-color: var(--yc-primary);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 93, 35, 0.3);
+}
+
+.btn-logout:focus {
+  background-color: var(--yc-primary);
+  border-color: var(--yc-primary);
+  color: white;
+  box-shadow: 0 0 0 0.2rem rgba(74, 93, 35, 0.25);
+}
+
+/* The Campgrounds specific buttons */
 .btn-yc-sage {
   background-color: var(--yc-sage);
   border-color: var(--yc-sage);
@@ -301,12 +327,37 @@ main {
   font-size: 1.25rem;
   box-shadow: var(--yc-shadow-lg);
   transition: all 0.3s ease;
+  opacity: 0.9;
+  animation: fadeInUp 0.3s ease-out;
 }
 
 .back-to-top:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--yc-shadow-xl);
   background: var(--yc-primary-dark);
+  color: white;
+  opacity: 1;
+}
+
+.back-to-top:focus {
+  box-shadow: var(--yc-shadow-xl), 0 0 0 0.2rem rgba(74, 93, 35, 0.25);
+  background: var(--yc-primary-dark);
+  color: white;
+}
+
+.back-to-top i {
+  font-size: 1.1rem;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 0.9;
+    transform: translateY(0);
+  }
 }
 
 /* Map container improvements */
@@ -392,7 +443,7 @@ main {
   background: var(--yc-primary-dark);
 }
 
-/* YelpCamp Homepage - Forest Cabin Aesthetic */
+/* The Campgrounds Homepage - Forest Cabin Aesthetic */
 
 /* Hero Section */
 .home-page {
@@ -427,6 +478,17 @@ main {
   display: flex;
   justify-content: center;
   margin-bottom: 2rem;
+}
+
+/* White version of the logo for hero section */
+.hero-logo-white {
+  filter: brightness(0) invert(1);
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.hero-logo-white:hover {
+  transform: scale(1.05);
+  filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
 }
 
 .logo-svg {
@@ -1042,4 +1104,371 @@ main {
 .spinner-border-custom {
   border-color: var(--yc-primary);
   border-right-color: transparent;
+}
+
+/* Login Page Styling */
+.login-page {
+  background: linear-gradient(135deg, var(--yc-primary-50) 0%, var(--yc-cream) 50%, var(--yc-primary-100) 100%);
+  min-height: 100vh;
+  position: relative;
+}
+
+.login-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234a5d23' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+  pointer-events: none;
+}
+
+.login-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid rgba(74, 93, 35, 0.1);
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 4px;
+  background: var(--yc-gradient-primary);
+  border-radius: 0 0 10px 10px;
+}
+
+.login-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  background: var(--yc-primary-50);
+  border-radius: 50%;
+  margin: 0 auto;
+  border: 3px solid var(--yc-primary-100);
+  overflow: hidden;
+}
+
+.login-logo-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  filter: none;
+  transition: transform 0.3s ease;
+}
+
+.login-logo-img:hover {
+  transform: scale(1.1);
+}
+
+.login-title {
+  color: var(--yc-forest);
+  font-weight: 700;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.login-subtitle {
+  color: var(--yc-text-muted);
+  font-size: 1rem;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.form-label-custom {
+  color: var(--yc-forest);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-control-custom {
+  border: 2px solid var(--yc-primary-100);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: var(--yc-primary-50);
+}
+
+.form-control-custom:focus {
+  border-color: var(--yc-primary);
+  box-shadow: 0 0 0 0.2rem rgba(74, 93, 35, 0.15);
+  background-color: white;
+}
+
+.form-control-custom::placeholder {
+  color: var(--yc-text-muted);
+  opacity: 0.7;
+}
+
+.btn-login {
+  background: var(--yc-gradient-primary);
+  border: none;
+  border-radius: 12px;
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: white;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-login::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.btn-login:hover::before {
+  left: 100%;
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(74, 93, 35, 0.3);
+  background: var(--yc-gradient-primary);
+  color: white;
+}
+
+.btn-login:disabled {
+  opacity: 0.7;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.btn-login:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.custom-alert {
+  background-color: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  border-radius: 12px;
+  color: #721c24;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.login-footer {
+  color: var(--yc-text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 0;
+}
+
+.login-link {
+  color: var(--yc-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.login-link:hover {
+  color: var(--yc-primary-dark);
+  text-decoration: underline;
+}
+
+/* Responsive Design for Login */
+@media (max-width: 768px) {
+  .login-card .card-body {
+    padding: 2rem 1.5rem !important;
+  }
+  
+  .login-title {
+    font-size: 1.75rem;
+  }
+  
+  .login-icon {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .login-icon i {
+    font-size: 2.5rem !important;
+  }
+}
+
+/* Register Page Styling */
+.register-page {
+  background: linear-gradient(135deg, var(--yc-primary-50) 0%, var(--yc-cream) 50%, var(--yc-primary-100) 100%);
+  min-height: 100vh;
+  position: relative;
+}
+
+.register-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234a5d23' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+  pointer-events: none;
+}
+
+.register-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid rgba(74, 93, 35, 0.1);
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+}
+
+.register-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 4px;
+  background: var(--yc-gradient-primary);
+  border-radius: 0 0 10px 10px;
+}
+
+.register-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  background: var(--yc-primary-50);
+  border-radius: 50%;
+  margin: 0 auto;
+  border: 3px solid var(--yc-primary-100);
+  overflow: hidden;
+}
+
+.register-logo-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  filter: none;
+  transition: transform 0.3s ease;
+}
+
+.register-logo-img:hover {
+  transform: scale(1.1);
+}
+
+.register-title {
+  color: var(--yc-forest);
+  font-weight: 700;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.register-subtitle {
+  color: var(--yc-text-muted);
+  font-size: 1rem;
+  margin-bottom: 0;
+  line-height: 1.5;
+}
+
+.btn-register {
+  background: var(--yc-gradient-sage);
+  border: none;
+  border-radius: 12px;
+  padding: 0.875rem 2rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: white;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-register::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+.btn-register:hover::before {
+  left: 100%;
+}
+
+.btn-register:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(143, 160, 104, 0.4);
+  background: var(--yc-gradient-sage);
+  color: white;
+}
+
+.btn-register:disabled {
+  opacity: 0.7;
+  transform: none;
+  cursor: not-allowed;
+}
+
+.btn-register:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.form-text-custom {
+  color: var(--yc-text-muted);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.register-footer {
+  color: var(--yc-text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 0;
+}
+
+.register-link {
+  color: var(--yc-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.register-link:hover {
+  color: var(--yc-primary-dark);
+  text-decoration: underline;
+}
+
+/* Responsive Design for Register */
+@media (max-width: 768px) {
+  .register-card .card-body {
+    padding: 2rem 1.5rem !important;
+  }
+  
+  .register-title {
+    font-size: 1.75rem;
+  }
+  
+  .register-icon {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .register-logo-img {
+    width: 50px;
+    height: 50px;
+  }
 }

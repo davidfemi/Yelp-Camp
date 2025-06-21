@@ -1,4 +1,4 @@
-/* YelpCamp Color System - Based on Logo */
+/* The Campgrounds Color System - Based on Logo */
 :root {
   /* Primary Colors - From Logo */
   --yc-primary: #4a5d23;           /* Main green from logo */
@@ -386,3 +386,5 @@ a:hover {
     height: 250px !important;
   }
 }
+
+/* Custom The Campgrounds Utilities */

@@ -38,11 +38,10 @@ const Home: React.FC = () => {
               <div className="hero-text-container">
                 <div className="hero-logo">
                   <img 
-                    src={require('../assets/yelpcamp-logo.png')} 
-                    alt="YelpCamp Logo" 
-                    className="logo-image"
-                    width="150"
-                    height="150"
+                    src={require('../assets/thecampgrounds-logo.png')}
+                    alt="The Campgrounds Logo"
+                    className="img-fluid mb-4 hero-logo-white"
+                    style={{ maxHeight: '150px' }}
                   />
                 </div>
                 

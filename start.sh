@@ -1,4 +1,4 @@
 #!/bin/bash
-echo "Starting YelpCamp backend server..."
+echo "Starting The Campgrounds backend server..."
 cd yelpcamp-backend
 npm start 

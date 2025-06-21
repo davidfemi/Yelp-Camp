@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authAPI, User } from '../services/api';
 import { toast } from 'react-toastify';
+import { updateIntercomUser, shutdownIntercom } from '../services/intercomService';
 
 interface AuthContextType {
   user: User | null;
@@ -32,6 +33,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     checkAuthStatus();
   }, []);
+
+  // Update Intercom when user state changes
+  useEffect(() => {
+    updateIntercomUser(user);
+  }, [user]);
 
   const checkAuthStatus = async () => {
     try {
@@ -91,10 +97,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await authAPI.logout();
       setUser(null);
+      
+      // Shutdown Intercom session on logout using the service
+      shutdownIntercom();
+      
       toast.success('Logged out successfully');
     } catch (error) {
       // Even if the API call fails, we should still clear the user state
       setUser(null);
+      
+      // Still shutdown Intercom session
+      shutdownIntercom();
+      
       toast.error('Logout failed, but you have been logged out locally');
     }
   };

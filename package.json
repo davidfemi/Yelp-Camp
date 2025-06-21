@@ -1,7 +1,7 @@
 {
-  "name": "yelpcamp-monorepo",
+  "name": "the-campgrounds-monorepo",
   "version": "1.0.0",
-  "description": "YelpCamp Full Stack Application",
+  "description": "The Campgrounds Full Stack Application",
   "scripts": {
     "build": "./build.sh",
     "start": "./start.sh",
@@ -9,7 +9,8 @@
     "postinstall": "cd yelpcamp-backend && npm install"
   },
   "keywords": [
-    "yelpcamp",
+    "the-campgrounds",
+    "campgrounds",
     "fullstack",
     "express",
     "react",

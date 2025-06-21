@@ -17,6 +17,7 @@ import {
 import { toast } from 'react-toastify';
 import { campgroundsAPI, reviewsAPI, Campground } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { updateIntercomUser } from '../services/intercomService';
 import CampgroundMap from '../components/CampgroundMap';
 
 interface CampgroundData {
@@ -49,6 +50,18 @@ const CampgroundDetail: React.FC = () => {
       const response = await campgroundsAPI.getById(id);
       if (response.success && response.data) {
         setCampgroundData(response.data);
+        
+        // Track campground view in Intercom
+        if (user) {
+          const updatedUser = {
+            ...user,
+            last_viewed_campground: response.data.campground.title,
+            last_viewed_campground_id: id,
+            last_viewed_campground_at: Math.floor(new Date().getTime() / 1000),
+            campground_views: 'increased'
+          };
+          updateIntercomUser(updatedUser);
+        }
       } else {
         setError('Failed to load campground details');
       }
@@ -58,7 +71,7 @@ const CampgroundDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, user]);
 
   useEffect(() => {
     if (id) {

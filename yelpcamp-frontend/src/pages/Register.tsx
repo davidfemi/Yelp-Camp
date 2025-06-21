@@ -60,98 +60,129 @@ const Register: React.FC = () => {
   };
 
   return (
-    <Container>
-      <Row className="justify-content-center">
-        <Col md={6} lg={5}>
-          <Card className="shadow">
-            <Card.Body className="p-4">
-              <div className="text-center mb-4">
-                <h2>Join YelpCamp</h2>
-                <p className="text-muted">Create your account to start exploring</p>
-              </div>
+    <div className="register-page">
+      <Container>
+        <Row className="justify-content-center align-items-center min-vh-100">
+          <Col md={8} lg={6} xl={5}>
+            <Card className="register-card shadow-lg border-0">
+              <Card.Body className="p-5">
+                {/* Header Section */}
+                <div className="text-center mb-4">
+                  <div className="register-icon mb-3">
+                    <img 
+                      src={require('../assets/thecampgrounds-logo.png')}
+                      alt="The Campgrounds Logo"
+                      className="register-logo-img"
+                    />
+                  </div>
+                  <h2 className="register-title">Join The Campgrounds</h2>
+                  <p className="register-subtitle">Create your account to start exploring amazing campgrounds</p>
+                </div>
 
-              {error && <Alert variant="danger">{error}</Alert>}
+                {/* Error Alert */}
+                {error && (
+                  <Alert variant="danger" className="custom-alert">
+                    <i className="fas fa-exclamation-triangle me-2"></i>
+                    {error}
+                  </Alert>
+                )}
 
-              <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Username</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                    placeholder="Choose a username"
-                    autoComplete="username"
-                  />
-                </Form.Group>
+                {/* Registration Form */}
+                <Form onSubmit={handleSubmit}>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="form-label-custom">Username</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      required
+                      placeholder="Choose a username"
+                      autoComplete="username"
+                      className="form-control-custom"
+                    />
+                  </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your email"
-                    autoComplete="email"
-                  />
-                </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="form-label-custom">Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      placeholder="Enter your email"
+                      autoComplete="email"
+                      className="form-control-custom"
+                    />
+                  </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    placeholder="Create a password"
-                    minLength={6}
-                    autoComplete="new-password"
-                  />
-                  <Form.Text className="text-muted">
-                    Password must be at least 6 characters long.
-                  </Form.Text>
-                </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="form-label-custom">Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      placeholder="Create a password"
+                      minLength={6}
+                      autoComplete="new-password"
+                      className="form-control-custom"
+                    />
+                    <Form.Text className="form-text-custom">
+                      Password must be at least 6 characters long.
+                    </Form.Text>
+                  </Form.Group>
 
-                <Form.Group className="mb-3">
-                  <Form.Label>Confirm Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                    placeholder="Confirm your password"
-                    autoComplete="new-password"
-                  />
-                </Form.Group>
+                  <Form.Group className="mb-4">
+                    <Form.Label className="form-label-custom">Confirm Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                      placeholder="Confirm your password"
+                      autoComplete="new-password"
+                      className="form-control-custom"
+                    />
+                  </Form.Group>
 
-                <Button
-                  variant="primary"
-                  type="submit"
-                  className="w-100 mb-3"
-                  disabled={loading}
-                >
-                  {loading ? 'Creating Account...' : 'Create Account'}
-                </Button>
-              </Form>
+                  <Button
+                    type="submit"
+                    className="btn-register w-100 mb-4"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Creating Account...
+                      </>
+                    ) : (
+                      <>
+                        <i className="fas fa-user-plus me-2"></i>
+                        Create Account
+                      </>
+                    )}
+                  </Button>
+                </Form>
 
-              <div className="text-center">
-                <p className="mb-0">
-                  Already have an account?{' '}
-                  <Link to="/login" className="text-decoration-none">
-                    Sign in here
-                  </Link>
-                </p>
-              </div>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+                {/* Footer */}
+                <div className="text-center">
+                  <p className="register-footer">
+                    Already have an account?{' '}
+                    <Link to="/login" className="register-link">
+                      Sign in here
+                    </Link>
+                  </p>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 

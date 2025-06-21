@@ -15,8 +15,8 @@ const Navbar: React.FC = () => {
   return (
     <BootstrapNavbar bg="light" variant="light" expand="lg" sticky="top">
       <Container>
-        <BootstrapNavbar.Brand as={Link} to="/">
-          YelpCamp
+        <BootstrapNavbar.Brand as={Link} to="/" className="fw-bold fs-3">
+          The Campgrounds
         </BootstrapNavbar.Brand>
         
         <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
@@ -41,7 +41,7 @@ const Navbar: React.FC = () => {
                 <BootstrapNavbar.Text className="me-3">
                   Welcome, {user?.username}!
                 </BootstrapNavbar.Text>
-                <Button variant="outline-light" onClick={handleLogout}>
+                <Button variant="outline-primary" onClick={handleLogout} className="btn-logout">
                   Logout
                 </Button>
               </>

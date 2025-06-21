@@ -1,8 +1,8 @@
-# YelpCamp 🏕️
+# The Campgrounds 🏕️
 
 A full-stack web application for discovering and reviewing campgrounds around the world. Built with modern technologies and featuring user authentication, image uploads, interactive maps, and AI-enhanced descriptions.
 
-![YelpCamp](yelpcamp-frontend/Yelpcamp.png)
+![The Campgrounds](yelpcamp-frontend/Yelpcamp.png)
 
 ## ✨ Features
 
@@ -60,8 +60,8 @@ A full-stack web application for discovering and reviewing campgrounds around th
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/yelpcamp.git
-   cd yelpcamp
+   git clone https://github.com/yourusername/the-campgrounds.git
+   cd the-campgrounds
    ```
 
 2. **Install backend dependencies**
@@ -82,9 +82,9 @@ Create a `.env` file in the `yelpcamp-backend` directory with the following vari
 
 ```env
 # Database
-DB_URL=mongodb://localhost:27017/yelpcamp
+DB_URL=mongodb://localhost:27017/thecampgrounds
 # OR for MongoDB Atlas:
-# DB_URL=mongodb+srv://username:password@cluster.mongodb.net/yelpcamp
+# DB_URL=mongodb+srv://username:password@cluster.mongodb.net/thecampgrounds
 
 # Session Secret
 SECRET=your-super-secret-session-key
@@ -155,7 +155,7 @@ For detailed API documentation, see [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
 ## 🏗️ Project Structure
 
 ```
-yelpcamp/
+the-campgrounds/
 ├── yelpcamp-backend/           # Express.js API server
 │   ├── controllers/            # Route controllers
 │   ├── models/                 # Mongoose models

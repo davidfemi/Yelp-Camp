@@ -24,7 +24,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   return (
     <div className={containerClasses}>
       <div className="flex flex-col items-center">
-        {/* YelpCamp Logo */}
+        {/* The Campgrounds Logo */}
         <svg 
           className={`${sizeClasses[size]} mb-4 animate-pulse`}
           viewBox="0 0 200 200" 

@@ -1,6 +1,6 @@
-# YelpCamp API Documentation
+# The Campgrounds API Documentation
 
-This API provides programmatic access to YelpCamp campground data. All endpoints return JSON responses.
+This API provides programmatic access to The Campgrounds campground data. All endpoints return JSON responses.
 
 ## Base URL
 ```
