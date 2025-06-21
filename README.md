@@ -4,6 +4,15 @@ A full-stack web application for discovering and reviewing campgrounds around th
 
 ![The Campgrounds](yelpcamp-frontend/Yelpcamp.png)
 
+## 🌐 Live Demo
+
+**🚀 [Visit The Campgrounds](https://thecampground.vercel.app)**
+
+- **Frontend**: https://thecampground.vercel.app
+- **Backend API**: https://yelpcamp-vvv2.onrender.com
+
+*Try creating an account and exploring campgrounds from around the world!*
+
 ## ✨ Features
 
 ### Core Functionality
@@ -133,6 +142,10 @@ NODE_ENV=development
 
 ## 📚 API Documentation
 
+### Base URLs
+- **Production**: `https://yelpcamp-vvv2.onrender.com`
+- **Development**: `http://localhost:5000`
+
 ### Authentication Endpoints
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - User login
@@ -150,7 +163,19 @@ NODE_ENV=development
 - `POST /api/campgrounds/:id/reviews` - Add review
 - `DELETE /api/campgrounds/:id/reviews/:reviewId` - Delete review
 
-For detailed API documentation, see [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
+### Example API Calls
+
+**Get all campgrounds:**
+```bash
+curl https://yelpcamp-vvv2.onrender.com/api/campgrounds
+```
+
+**Register new user:**
+```bash
+curl -X POST https://yelpcamp-vvv2.onrender.com/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"test@example.com","password":"password123"}'
+```
 
 ## 🏗️ Project Structure
 
@@ -177,21 +202,49 @@ the-campgrounds/
 
 ## 🚀 Deployment
 
-### Backend Deployment (Railway/Render/Heroku)
+### Production Deployment
 
-1. **Set environment variables** in your hosting platform
-2. **Deploy from GitHub** or use CLI tools
-3. **Set start command**: `npm start`
+The application is currently deployed and running live:
 
-### Frontend Deployment (Vercel/Netlify)
+- **Frontend**: Deployed on Vercel at https://thecampground.vercel.app
+- **Backend**: Deployed on Render at https://yelpcamp-vvv2.onrender.com
+- **Database**: MongoDB Atlas (cloud-hosted)
+- **Images**: Cloudinary (cloud storage)
 
-1. **Build the app**: `npm run build`
-2. **Deploy the build folder**
-3. **Set environment variables** if needed
+### Backend Deployment (Render)
+
+The backend is deployed on Render with the following configuration:
+1. **Environment variables** set in Render dashboard
+2. **Auto-deploy** from GitHub repository
+3. **Start command**: `npm start`
+4. **Node.js version**: Latest stable
+
+### Frontend Deployment (Vercel)
+
+The frontend is deployed on Vercel with:
+1. **Auto-deploy** from GitHub repository
+2. **Build command**: `npm run build`
+3. **Output directory**: `build`
+4. **Environment variables** configured in Vercel dashboard
 
 ### Environment Variables for Production
 
-Make sure to set all the environment variables from the `.env` file in your production environment, updating URLs and secrets as needed.
+Key environment variables configured in production:
+```env
+# Backend (Render)
+DB_URL=mongodb+srv://...
+SECRET=production-secret
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_KEY=...
+CLOUDINARY_SECRET=...
+MAPBOX_TOKEN=...
+GEMINI_API_KEY=...
+FRONTEND_URL=https://thecampground.vercel.app
+NODE_ENV=production
+
+# Frontend (Vercel)
+REACT_APP_API_URL=https://yelpcamp-vvv2.onrender.com
+```
 
 ## 🧪 Available Scripts
 

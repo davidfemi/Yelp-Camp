@@ -1,238 +1,398 @@
 # The Campgrounds API Documentation
 
-This API provides programmatic access to The Campgrounds campground data. All endpoints return JSON responses.
+## Base URLs
 
-## Base URL
+- **Production**: `https://yelpcamp-vvv2.onrender.com`
+- **Development**: `http://localhost:5000`
+
+## Authentication
+
+The API uses session-based authentication with cookies. All authenticated requests must include credentials.
+
+### Headers
 ```
-http://localhost:5176/api
-```
-For production:
-```
-https://your-domain.com/api
+Content-Type: application/json
 ```
 
-## Available Endpoints
+### Cookies
+Authentication is handled via HTTP-only session cookies. Include credentials in requests:
+```javascript
+fetch(url, {
+  method: 'POST',
+  credentials: 'include',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(data)
+})
+```
 
-### 1. Get All Campgrounds
+## Authentication Endpoints
+
+### Register User
+**POST** `/api/auth/register`
+
+Register a new user account.
+
+**Request Body:**
+```json
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "64f8a123456789abcdef0123",
+      "username": "johndoe",
+      "email": "john@example.com"
+    }
+  },
+  "message": "Registration successful"
+}
+```
+
+### Login User
+**POST** `/api/auth/login`
+
+Authenticate user and create session.
+
+**Request Body:**
+```json
+{
+  "username": "johndoe",
+  "password": "password123"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "64f8a123456789abcdef0123",
+      "username": "johndoe",
+      "email": "john@example.com"
+    }
+  },
+  "message": "Login successful"
+}
+```
+
+### Logout User
+**POST** `/api/auth/logout`
+
+End user session.
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Logout successful"
+}
+```
+
+### Get Current User
+**GET** `/api/auth/me`
+
+Get currently authenticated user information.
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "64f8a123456789abcdef0123",
+      "username": "johndoe",
+      "email": "john@example.com"
+    }
+  }
+}
+```
+
+## Campground Endpoints
+
+### Get All Campgrounds
 **GET** `/api/campgrounds`
 
-Retrieve a paginated list of campgrounds with optional filtering and sorting.
+Retrieve paginated list of campgrounds with optional filtering.
 
 **Query Parameters:**
-- `page` (number, default: 1) - Page number for pagination
-- `limit` (number, default: 20) - Number of campgrounds per page
-- `search` (string) - Search term for title, description, or location
-- `location` (string) - Filter by location
-- `minPrice` (number) - Minimum price filter
-- `maxPrice` (number) - Maximum price filter
-- `sortBy` (string, default: 'title') - Field to sort by (title, price, location)
-- `sortOrder` (string, default: 'asc') - Sort order ('asc' or 'desc')
+- `page` (number): Page number (default: 1)
+- `limit` (number): Items per page (default: 20)
+- `search` (string): Search term for title, description, or location
+- `location` (string): Filter by location
+- `minPrice` (number): Minimum price filter
+- `maxPrice` (number): Maximum price filter
+- `sortBy` (string): Sort field (default: 'title')
+- `sortOrder` (string): 'asc' or 'desc' (default: 'asc')
 
-**Example Request:**
-```bash
-curl "http://localhost:5176/api/campgrounds?page=1&limit=10&search=forest&sortBy=price&sortOrder=asc"
+**Example:**
+```
+GET /api/campgrounds?page=1&limit=10&search=mountain&minPrice=20&maxPrice=100
 ```
 
-**Example Response:**
+**Response (200):**
 ```json
 {
   "success": true,
   "data": {
     "campgrounds": [
       {
-        "_id": "64f1234567890abcdef12345",
-        "title": "Forest Mule Camp",
-        "description": "A beautiful forest campground...",
-        "location": "Yellowstone, Wyoming",
-        "price": 25,
+        "_id": "64f8a123456789abcdef0123",
+        "title": "Mountain View Campground",
+        "description": "Beautiful mountain views...",
+        "location": "Yosemite, CA",
+        "price": 45,
         "images": [
           {
-            "url": "https://res.cloudinary.com/djsoqjxpg/image/upload/v1/yelpcamp/forest/forest_camping_1.jpg",
-            "filename": "yelpcamp/forest/forest_camping_1"
+            "url": "https://res.cloudinary.com/...",
+            "filename": "campground_123"
           }
         ],
         "author": {
-          "_id": "64f1234567890abcdef12346",
-          "username": "john_doe"
+          "_id": "64f8a123456789abcdef0124",
+          "username": "johndoe"
         },
         "reviews": []
       }
     ],
     "pagination": {
       "currentPage": 1,
-      "totalPages": 15,
-      "totalCampgrounds": 300,
+      "totalPages": 5,
+      "totalCampgrounds": 47,
       "hasNextPage": true,
       "hasPrevPage": false,
-      "limit": 20
+      "limit": 10
     }
   }
 }
 ```
 
-### 2. Get Specific Campground
+### Get Single Campground
 **GET** `/api/campgrounds/:id`
 
-Retrieve detailed information about a specific campground including reviews and statistics.
+Retrieve detailed information about a specific campground.
 
-**Example Request:**
-```bash
-curl "http://localhost:5176/api/campgrounds/64f1234567890abcdef12345"
-```
-
-**Example Response:**
+**Response (200):**
 ```json
 {
   "success": true,
   "data": {
     "campground": {
-      "_id": "64f1234567890abcdef12345",
-      "title": "Forest Mule Camp",
-      "description": "A beautiful forest campground with hiking trails...",
-      "location": "Yellowstone, Wyoming",
-      "price": 25,
+      "_id": "64f8a123456789abcdef0123",
+      "title": "Mountain View Campground",
+      "description": "Beautiful mountain views...",
+      "location": "Yosemite, CA",
+      "price": 45,
       "images": [...],
       "author": {
-        "_id": "64f1234567890abcdef12346",
-        "username": "john_doe",
+        "_id": "64f8a123456789abcdef0124",
+        "username": "johndoe",
         "email": "john@example.com"
       },
       "reviews": [
         {
-          "_id": "64f1234567890abcdef12347",
+          "_id": "64f8a123456789abcdef0125",
           "rating": 5,
           "body": "Amazing campground!",
           "author": {
-            "_id": "64f1234567890abcdef12348",
-            "username": "jane_smith"
+            "_id": "64f8a123456789abcdef0126",
+            "username": "janedoe"
           },
-          "createdAt": "2023-09-01T10:30:00.000Z"
+          "createdAt": "2023-09-06T12:00:00.000Z"
         }
-      ]
+      ],
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-119.538329, 37.865101]
+      }
     },
     "stats": {
       "averageRating": 4.5,
-      "totalReviews": 12,
-      "createdAt": "2023-08-15T14:20:00.000Z"
+      "totalReviews": 12
     }
   }
 }
 ```
 
-### 3. Search Campgrounds
+### Create Campground
+**POST** `/api/campgrounds`
+
+Create a new campground. **Requires authentication.**
+
+**Request Body:**
+```json
+{
+  "title": "Sunset Beach Campground",
+  "description": "Stunning sunset views over the ocean...",
+  "location": "Big Sur, CA",
+  "price": 65,
+  "images": [
+    {
+      "url": "https://res.cloudinary.com/...",
+      "filename": "campground_sunset_123"
+    }
+  ]
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "campground": {
+      "_id": "64f8a123456789abcdef0127",
+      "title": "Sunset Beach Campground",
+      "description": "Stunning sunset views over the ocean...",
+      "location": "Big Sur, CA",
+      "price": 65,
+      "images": [...],
+      "author": "64f8a123456789abcdef0124",
+      "reviews": [],
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-121.808447, 36.270026]
+      }
+    }
+  },
+  "message": "Campground created successfully"
+}
+```
+
+### Update Campground
+**PUT** `/api/campgrounds/:id`
+
+Update an existing campground. **Requires authentication and ownership.**
+
+**Request Body:** (partial update supported)
+```json
+{
+  "title": "Updated Campground Name",
+  "price": 75
+}
+```
+
+### Delete Campground
+**DELETE** `/api/campgrounds/:id`
+
+Delete a campground. **Requires authentication and ownership.**
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Campground deleted successfully"
+}
+```
+
+## Review Endpoints
+
+### Add Review
+**POST** `/api/campgrounds/:id/reviews`
+
+Add a review to a campground. **Requires authentication.**
+
+**Request Body:**
+```json
+{
+  "rating": 5,
+  "body": "Absolutely loved this campground! The views were incredible and the facilities were clean."
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "review": {
+      "_id": "64f8a123456789abcdef0128",
+      "rating": 5,
+      "body": "Absolutely loved this campground!...",
+      "author": {
+        "_id": "64f8a123456789abcdef0124",
+        "username": "johndoe"
+      },
+      "createdAt": "2023-09-06T14:30:00.000Z",
+      "updatedAt": "2023-09-06T14:30:00.000Z"
+    }
+  },
+  "message": "Review added successfully"
+}
+```
+
+### Delete Review
+**DELETE** `/api/campgrounds/:id/reviews/:reviewId`
+
+Delete a review. **Requires authentication and ownership.**
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Review deleted successfully"
+}
+```
+
+## Search and Category Endpoints
+
+### Search Campgrounds
 **GET** `/api/campgrounds/search/:term`
 
-Search for campgrounds by term in title, description, or location.
+Search for campgrounds by term.
 
 **Query Parameters:**
-- `limit` (number, default: 10) - Maximum number of results
+- `limit` (number): Maximum results (default: 10)
 
-**Example Request:**
-```bash
-curl "http://localhost:5176/api/campgrounds/search/forest?limit=5"
+**Example:**
+```
+GET /api/campgrounds/search/beach?limit=5
 ```
 
-**Example Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "searchTerm": "forest",
-    "results": 5,
-    "campgrounds": [
-      {
-        "_id": "64f1234567890abcdef12345",
-        "title": "Forest Mule Camp",
-        "location": "Yellowstone, Wyoming",
-        "price": 25,
-        "images": [...],
-        "description": "A beautiful forest campground...",
-        "author": {
-          "_id": "64f1234567890abcdef12346",
-          "username": "john_doe"
-        }
-      }
-    ]
-  }
-}
-```
-
-### 4. Get Campgrounds by Category
+### Get Campgrounds by Category
 **GET** `/api/campgrounds/category/:type`
 
-Get campgrounds filtered by category type.
+Get campgrounds by category type.
 
 **Valid Categories:**
-- `ocean` - Ocean, sea, bay, beach, coast, bayshore campgrounds
-- `mountain` - Mountain, peak, summit, alpine, ridge campgrounds
-- `desert` - Desert, sand, dune, mesa, canyon campgrounds
-- `river` - River, creek, stream, rapids, waterfall, creekside campgrounds
-- `lake` - Lake, pond, reservoir, lagoon campgrounds
-- `forest` - Forest, woods, trees, woodland campgrounds
+- `ocean`, `mountain`, `desert`, `river`, `lake`, `forest`
 
 **Query Parameters:**
-- `limit` (number, default: 20) - Maximum number of results
+- `limit` (number): Maximum results (default: 20)
 
-**Example Request:**
-```bash
-curl "http://localhost:5176/api/campgrounds/category/ocean?limit=10"
-```
+## Statistics Endpoint
 
-**Example Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "category": "ocean",
-    "results": 10,
-    "campgrounds": [
-      {
-        "_id": "64f1234567890abcdef12349",
-        "title": "Ocean Bay Camp",
-        "location": "California Coast",
-        "price": 35,
-        "images": [...],
-        "description": "Beachfront camping with ocean views...",
-        "author": {
-          "_id": "64f1234567890abcdef12350",
-          "username": "beach_lover"
-        }
-      }
-    ]
-  }
-}
-```
-
-### 5. Get Statistics
+### Get Application Stats
 **GET** `/api/stats`
 
-Get general statistics about the campgrounds and reviews.
+Get application statistics.
 
-**Example Request:**
-```bash
-curl "http://localhost:5176/api/stats"
-```
-
-**Example Response:**
+**Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "totalCampgrounds": 300,
-    "totalReviews": 1250,
+    "totalCampgrounds": 47,
+    "totalReviews": 156,
     "pricing": {
-      "avgPrice": 28.5,
+      "avgPrice": 52.3,
       "minPrice": 15,
-      "maxPrice": 75
+      "maxPrice": 150
     },
     "topLocations": [
       {
-        "_id": "Yellowstone, Wyoming",
-        "count": 25
-      },
-      {
-        "_id": "Yosemite, California",
-        "count": 20
+        "_id": "Yosemite, CA",
+        "count": 5
       }
     ]
   }
@@ -241,92 +401,91 @@ curl "http://localhost:5176/api/stats"
 
 ## Error Responses
 
-All endpoints return consistent error responses:
-
+### 400 Bad Request
 ```json
 {
   "success": false,
-  "error": "Error description",
-  "message": "Detailed error message"
+  "error": "Invalid input data"
 }
 ```
 
-**Common HTTP Status Codes:**
-- `200` - Success
-- `400` - Bad Request (invalid parameters)
-- `404` - Not Found (campground doesn't exist)
-- `500` - Internal Server Error
-
-## Usage Examples
-
-### JavaScript (Fetch API)
-```javascript
-// Get all campgrounds
-const response = await fetch('/api/campgrounds?page=1&limit=10');
-const data = await response.json();
-console.log(data.data.campgrounds);
-
-// Get specific campground
-const campgroundId = '64f1234567890abcdef12345';
-const campground = await fetch(`/api/campgrounds/${campgroundId}`);
-const campgroundData = await campground.json();
-console.log(campgroundData.data.campground);
-
-// Search campgrounds
-const searchResults = await fetch('/api/campgrounds/search/forest');
-const searchData = await searchResults.json();
-console.log(searchData.data.campgrounds);
+### 401 Unauthorized
+```json
+{
+  "success": false,
+  "error": "Authentication required"
+}
 ```
 
-### Python (requests)
-```python
-import requests
-
-# Get all campgrounds
-response = requests.get('http://localhost:5176/api/campgrounds', params={
-    'page': 1,
-    'limit': 10,
-    'search': 'forest'
-})
-data = response.json()
-print(data['data']['campgrounds'])
-
-# Get specific campground
-campground_id = '64f1234567890abcdef12345'
-response = requests.get(f'http://localhost:5176/api/campgrounds/{campground_id}')
-campground_data = response.json()
-print(campground_data['data']['campground'])
+### 403 Forbidden
+```json
+{
+  "success": false,
+  "error": "Permission denied"
+}
 ```
 
-### cURL Examples
-```bash
-# Get campgrounds with filtering
-curl -X GET "http://localhost:5176/api/campgrounds?search=forest&minPrice=20&maxPrice=50&sortBy=price&sortOrder=asc"
-
-# Get campground by ID
-curl -X GET "http://localhost:5176/api/campgrounds/64f1234567890abcdef12345"
-
-# Search campgrounds
-curl -X GET "http://localhost:5176/api/campgrounds/search/mountain"
-
-# Get ocean campgrounds
-curl -X GET "http://localhost:5176/api/campgrounds/category/ocean"
-
-# Get statistics
-curl -X GET "http://localhost:5176/api/stats"
+### 404 Not Found
+```json
+{
+  "success": false,
+  "error": "Resource not found"
+}
 ```
 
-## Rate Limiting & Best Practices
+### 500 Internal Server Error
+```json
+{
+  "success": false,
+  "error": "Internal server error"
+}
+```
 
-1. **Pagination**: Always use pagination for large datasets
-2. **Filtering**: Use specific filters to reduce response size
-3. **Caching**: Consider caching responses for frequently accessed data
-4. **Error Handling**: Always check the `success` field in responses
+## Rate Limiting
 
-## Authentication
-
-Currently, the API endpoints are public and don't require authentication. If you need to add authentication in the future, you can modify the routes to include authentication middleware.
+API requests are not currently rate-limited, but this may be implemented in future versions.
 
 ## CORS
 
-If you need to access the API from a different domain, you may need to configure CORS in your Express application. 
+The API supports CORS and accepts requests from:
+- `https://thecampground.vercel.app` (production)
+- `http://localhost:3000` (development)
+
+## Example Usage with JavaScript
+
+```javascript
+// Register new user
+const registerUser = async (userData) => {
+  const response = await fetch('https://yelpcamp-vvv2.onrender.com/api/auth/register', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(userData)
+  });
+  return response.json();
+};
+
+// Get campgrounds
+const getCampgrounds = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const response = await fetch(`https://yelpcamp-vvv2.onrender.com/api/campgrounds?${queryString}`, {
+    credentials: 'include'
+  });
+  return response.json();
+};
+
+// Add review
+const addReview = async (campgroundId, reviewData) => {
+  const response = await fetch(`https://yelpcamp-vvv2.onrender.com/api/campgrounds/${campgroundId}/reviews`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(reviewData)
+  });
+  return response.json();
+};
+``` 

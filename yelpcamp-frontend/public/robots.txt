@@ -1,3 +1,19 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap - dynamically points to the current backend
+Sitemap: https://yelpcamp-vvv2.onrender.com/sitemap.xml
+
+# Note: In production, this should be set via environment variables
+# For local development: http://localhost:5000/sitemap.xml
+# For production: https://your-backend-domain.com/sitemap.xml
+
+# Crawl-delay (optional - be respectful to search engines)
+Crawl-delay: 1
+
+# Disallow admin/auth pages from being indexed
+Disallow: /login
+Disallow: /register
+Disallow: /campgrounds/new
+Disallow: /campgrounds/*/edit

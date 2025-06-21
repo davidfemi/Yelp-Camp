@@ -527,6 +527,105 @@ app.get('/api/stats', catchAsync(async (req, res) => {
     });
 }));
 
+// SEO Routes
+app.get('/sitemap.xml', catchAsync(async (req, res) => {
+    // Use environment variable for frontend URL, with appropriate fallback based on environment
+    const frontendUrl = process.env.FRONTEND_URL || 
+        (process.env.NODE_ENV === 'production' 
+            ? `https://${req.get('host').replace('yelpcamp-vvv2.onrender.com', 'thecampground.vercel.app')}`
+            : 'http://localhost:3000'
+        );
+    
+    // Get all campgrounds for the sitemap
+    const campgrounds = await Campground.find({}, '_id title updatedAt').sort({ updatedAt: -1 });
+    
+    // Generate XML sitemap
+    let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <!-- Main Pages -->
+    <url>
+        <loc>${frontendUrl}</loc>
+        <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>${frontendUrl}/campgrounds</loc>
+        <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>${frontendUrl}/login</loc>
+        <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    <url>
+        <loc>${frontendUrl}/register</loc>
+        <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    <!-- Campground Pages -->`;
+
+    // Add each campground to sitemap
+    campgrounds.forEach(campground => {
+        const lastmod = campground.updatedAt ? campground.updatedAt.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        sitemap += `
+    <url>
+        <loc>${frontendUrl}/campgrounds/${campground._id}</loc>
+        <lastmod>${lastmod}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>`;
+    });
+
+    sitemap += `
+</urlset>`;
+
+    res.set('Content-Type', 'application/xml');
+    res.send(sitemap);
+}));
+
+// Dynamic robots.txt endpoint
+app.get('/robots.txt', (req, res) => {
+    const protocol = req.get('x-forwarded-proto') || req.protocol || 'http';
+    const host = req.get('host');
+    const sitemapUrl = `${protocol}://${host}/sitemap.xml`;
+    
+    const frontendUrl = process.env.FRONTEND_URL || 
+        (process.env.NODE_ENV === 'production' 
+            ? `https://${host.replace('yelpcamp-vvv2.onrender.com', 'thecampground.vercel.app')}`
+            : 'http://localhost:3000'
+        );
+
+    const robotsTxt = `# Robots.txt for The Campgrounds
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: ${sitemapUrl}
+
+# Crawl-delay (optional - be respectful to search engines)
+Crawl-delay: 1
+
+# Frontend URLs that should not be crawled by search engines
+# Note: These are frontend routes, not backend API routes
+# Disallow: ${frontendUrl.replace(protocol + '://' + host, '')}/login
+# Disallow: ${frontendUrl.replace(protocol + '://' + host, '')}/register
+# Disallow: ${frontendUrl.replace(protocol + '://' + host, '')}/campgrounds/new
+# Disallow: ${frontendUrl.replace(protocol + '://' + host, '')}/campgrounds/*/edit
+
+# Allow all API endpoints for this backend
+Allow: /api/
+Allow: /sitemap.xml
+`;
+
+    res.set('Content-Type', 'text/plain');
+    res.send(robotsTxt);
+});
+
 // Error handling middleware
 app.all('*', (req, res, next) => {
     res.status(404).json({

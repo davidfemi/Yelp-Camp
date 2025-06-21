@@ -1,10 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Row, Col, Card, Button, Form, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { campgroundsAPI, Campground } from '../services/api';
+import { Link, useSearchParams } from 'react-router-dom';
+import { 
+  Container, 
+  Row, 
+  Col, 
+  Card, 
+  Button, 
+  Form, 
+  InputGroup, 
+  Spinner, 
+  Alert,
+  Pagination,
+  Badge
+} from 'react-bootstrap';
+import { campgroundsAPI, Campground, PaginationInfo } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import CampgroundsMap from '../components/CampgroundsMap';
 import LoadingScreen from '../components/LoadingScreen';
+import SEOHead from '../components/SEOHead';
 
 const Campgrounds: React.FC = () => {
   const [campgrounds, setCampgrounds] = useState<Campground[]>([]);
@@ -90,6 +103,7 @@ const Campgrounds: React.FC = () => {
 
   return (
     <Container>
+      <SEOHead title="All Campgrounds" description="Discover amazing camping destinations across the country" />
       {/* Page Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>

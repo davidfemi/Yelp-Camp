@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Button, Card } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { statsAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import SEOHead from '../components/SEOHead';
 
 const Home: React.FC = () => {
   const [stats, setStats] = useState<{
@@ -29,6 +31,13 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-page">
+      <SEOHead 
+        title="The Campgrounds - Discover Amazing Campgrounds Worldwide"
+        description="Find and book extraordinary campgrounds worldwide. From mountain peaks to forest havens and lakeside retreats - discover your perfect wilderness escape with detailed reviews, photos, and maps."
+        keywords="camping, campgrounds, outdoor adventure, nature, travel, wilderness, hiking, camping destinations, RV parks, tent camping"
+        url="https://thecampground.vercel.app"
+        type="website"
+      />
       {/* Hero Section - Split Screen Design */}
       <div className="hero-section">
         <Container fluid className="px-0">

@@ -19,6 +19,7 @@ import { campgroundsAPI, reviewsAPI, Campground } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { updateIntercomUser } from '../services/intercomService';
 import CampgroundMap from '../components/CampgroundMap';
+import SEOHead from '../components/SEOHead';
 
 interface CampgroundData {
   campground: Campground;
@@ -83,40 +84,18 @@ const CampgroundDetail: React.FC = () => {
     e.preventDefault();
     if (!id || !isAuthenticated) return;
 
-    // Debug logging
-    console.log('Review submission debug:');
-    console.log('User authenticated:', isAuthenticated);
-    console.log('User object:', user);
-    console.log('Review form data:', reviewForm);
-    console.log('Campground ID:', id);
-
     setSubmittingReview(true);
     try {
-      // First, let's check if we're still authenticated by calling the me endpoint
-      const authCheck = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/me`, {
-        credentials: 'include'
-      });
-      console.log('Auth check response:', authCheck.status);
-      
       const response = await reviewsAPI.create(id, reviewForm);
-      console.log('Review API response:', response);
-      
       if (response.success) {
         toast.success('Review added successfully!');
         setShowReviewModal(false);
         setReviewForm({ rating: 5, body: '' });
         fetchCampgroundData(); // Refresh to show new review
       } else {
-        console.error('Review creation failed:', response);
         toast.error('Failed to add review');
       }
     } catch (error: any) {
-      console.error('Review submission error:', error);
-      if (error?.response) {
-        console.error('Error response data:', error.response.data);
-        console.error('Error response status:', error.response.status);
-        console.error('Error response headers:', error.response.headers);
-      }
       toast.error('Failed to add review');
     } finally {
       setSubmittingReview(false);
@@ -187,6 +166,21 @@ const CampgroundDetail: React.FC = () => {
 
   return (
     <Container>
+      <SEOHead
+        title={`${campground.title} - The Campgrounds`}
+        description={campground.description.length > 160 
+          ? `${campground.description.substring(0, 157)}...` 
+          : campground.description
+        }
+        keywords={`${campground.title}, ${campground.location}, camping, campground, outdoor, adventure, nature`}
+        image={campground.images[0]?.url}
+        url={`https://thecampground.vercel.app/campgrounds/${campground._id}`}
+        type="article"
+        price={campground.price}
+        location={campground.location}
+        rating={stats.averageRating}
+        reviewCount={stats.totalReviews}
+      />
       {/* Header Section */}
       <Row className="mb-4">
         <Col>
