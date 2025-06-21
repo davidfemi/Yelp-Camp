@@ -2,12 +2,12 @@
 User-agent: *
 Allow: /
 
-# Sitemap - dynamically points to the current backend
+# Sitemaps - Frontend static sitemap and backend dynamic sitemap
+Sitemap: https://thecampground.vercel.app/sitemap.xml
 Sitemap: https://yelpcamp-vvv2.onrender.com/sitemap.xml
 
-# Note: In production, this should be set via environment variables
-# For local development: http://localhost:5000/sitemap.xml
-# For production: https://your-backend-domain.com/sitemap.xml
+# Note: The backend sitemap includes dynamic campground pages
+# The frontend sitemap includes static pages like homepage, about, etc.
 
 # Crawl-delay (optional - be respectful to search engines)
 Crawl-delay: 1

@@ -31,7 +31,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
     ? `${description} Located in ${location}, starting at $${price}/night.${rating ? ` Rated ${rating}/5 stars` : ''}${reviewCount ? ` with ${reviewCount} reviews` : ''}.`
     : description;
 
-  // Enhanced keywords for campground pages
+  // Enhanced keywords for campground pages - we'll add this as metadata
   const enhancedKeywords = location 
     ? `${keywords}, ${location}, campground near ${location}, camping ${location}`
     : keywords;
