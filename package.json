@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "YelpCamp Full Stack Application",
   "scripts": {
-    "build": "cd yelpcamp-backend && npm ci",
-    "start": "cd yelpcamp-backend && npm start",
+    "build": "./build.sh",
+    "start": "./start.sh",
     "dev": "cd yelpcamp-backend && npm run dev",
     "postinstall": "cd yelpcamp-backend && npm install"
   },

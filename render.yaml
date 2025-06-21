@@ -4,8 +4,8 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: cd yelpcamp-backend && npm ci
-    startCommand: cd yelpcamp-backend && npm start
+    buildCommand: ./build.sh
+    startCommand: ./start.sh
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
