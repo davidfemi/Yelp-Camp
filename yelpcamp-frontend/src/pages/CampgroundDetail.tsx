@@ -49,7 +49,11 @@ const CampgroundDetail: React.FC = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingForm, setBookingForm] = useState({ 
     days: 1,
-    checkInDate: new Date().toISOString().split('T')[0] // Default to today
+    checkInDate: (() => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow.toISOString().split('T')[0];
+    })() // Default to tomorrow
   });
   const [submittingBooking, setSubmittingBooking] = useState(false);
 
@@ -143,7 +147,14 @@ const CampgroundDetail: React.FC = () => {
       if (response.success) {
         toast.success('Booking confirmed successfully!');
         setShowBookingModal(false);
-        setBookingForm({ days: 1, checkInDate: new Date().toISOString().split('T')[0] });
+        setBookingForm({ 
+          days: 1, 
+          checkInDate: (() => {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            return tomorrow.toISOString().split('T')[0];
+          })()
+        });
         // Track successful booking creation
         if (response.data && response.data.booking) {
           trackBookingCreated(response.data.booking, user);

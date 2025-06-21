@@ -86,6 +86,13 @@ app.use((req, res, next) => {
         console.log(`🔐 Session Debug - Path: ${req.path}, Session ID: ${req.sessionID || 'none'}, Authenticated: ${req.isAuthenticated ? req.isAuthenticated() : false}`);
         console.log(`🍪 Cookie Debug - Headers: ${JSON.stringify(req.headers.cookie || 'no cookies')}`);
         console.log(`🌐 Origin Debug - Origin: ${req.headers.origin || 'no origin'}, Host: ${req.headers.host}`);
+        
+        // Add response debugging
+        const originalSend = res.send;
+        res.send = function(data) {
+            console.log(`📤 Response Debug - Set-Cookie: ${JSON.stringify(res.getHeaders()['set-cookie'] || 'no set-cookie headers')}`);
+            return originalSend.call(this, data);
+        };
     }
     next();
 });
