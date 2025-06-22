@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authAPI, User } from '../services/api';
 import { toast } from 'react-toastify';
-import { updateIntercomWithBookings, shutdownIntercom } from '../services/intercomService';
+import { updateIntercomWithBookings, updateIntercomUser } from '../services/intercomService';
 
 interface AuthContextType {
   user: User | null;
@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       };
       updateIntercomWithBookings(userWithLoginTime);
     } else {
-      shutdownIntercom();
+      updateIntercomUser(null);
     }
   }, [user]);
 
@@ -118,7 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       
       // Shutdown Intercom session on logout using the service
-      shutdownIntercom();
+      updateIntercomUser(null);
       
       toast.success('Logged out successfully');
     } catch (error) {
@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       
       // Still shutdown Intercom session
-      shutdownIntercom();
+      updateIntercomUser(null);
       
       toast.error('Logout failed, but you have been logged out locally');
     }

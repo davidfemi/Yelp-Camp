@@ -18,6 +18,14 @@ export interface User {
   email: string;
 }
 
+export interface UserProfile extends User {
+  createdAt: string;
+  stats: {
+    campgrounds: number;
+    reviews: number;
+  };
+}
+
 export interface Campground {
   _id: string;
   title: string;
@@ -90,7 +98,9 @@ export interface Booking {
   };
   days: number;
   totalPrice: number;
-  status: 'confirmed' | 'cancelled';
+  checkInDate?: string;
+  checkOutDate?: string;
+  status: 'confirmed' | 'cancelled' | 'expired';
   createdAt: string;
 }
 
@@ -196,6 +206,14 @@ export const statsAPI = {
       pricing: { avgPrice: number; minPrice: number; maxPrice: number };
       topLocations: Array<{ _id: string; count: number }>;
     }>>('/api/stats');
+    return response.data;
+  },
+};
+
+// User API
+export const userAPI = {
+  getProfile: async () => {
+    const response = await api.get<ApiResponse<{ user: UserProfile }>>('/api/users/profile');
     return response.data;
   },
 };

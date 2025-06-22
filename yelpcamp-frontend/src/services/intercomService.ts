@@ -254,6 +254,14 @@ export const hideIntercom = () => {
 export const shutdownIntercom = () => {
   if (window.Intercom) {
     window.Intercom('shutdown');
+    
+    // Reinitialize Intercom for anonymous visitors after logout
+    setTimeout(() => {
+      window.Intercom('boot', {
+        app_id: INTERCOM_APP_ID
+      });
+    }, 100); // Small delay to ensure shutdown completes
+    
     isBooted = false;
   }
 }; 
