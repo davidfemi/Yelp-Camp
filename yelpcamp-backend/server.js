@@ -143,6 +143,23 @@ const isReviewAuthor = async (req, res, next) => {
     next();
 };
 
+// REPLACE workspaceToken and authOrToken implementations with simplified versions
+const workspaceTokenValid = (req) => {
+    const headerToken = req.get('x-api-access-token') || (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer' ? req.headers.authorization.split(' ')[1] : null);
+    return headerToken && headerToken === process.env.API_ACCESS_TOKEN;
+};
+
+const authOrToken = (req, res, next) => {
+    if (workspaceTokenValid(req)) {
+        req.workspaceAccess = true;
+        return next();
+    }
+    if (req.isAuthenticated && req.isAuthenticated()) {
+        return next();
+    }
+    return res.status(401).json({ success: false, error: 'Authentication required' });
+};
+
 // API Routes
 
 // Auth Routes
@@ -547,15 +564,53 @@ app.post('/api/campgrounds/:id/bookings', isLoggedIn, catchAsync(async (req, res
     res.status(201).json(response);
 }));
 
+// Session-based current user's bookings list (kept for backward compatibility)
 app.get('/api/bookings', isLoggedIn, catchAsync(async (req, res) => {
     const bookings = await Booking.find({ user: req.user._id })
         .populate('campground', 'title location price images')
         .sort({ createdAt: -1 });
 
-    res.json({
-        success: true,
-        data: { bookings }
-    });
+    res.json({ success: true, data: { bookings } });
+}));
+
+// ADD: fetch bookings for specific user (token or session)
+app.get('/api/bookings/user/:userId', authOrToken, catchAsync(async (req, res) => {
+    const { userId } = req.params;
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ success: false, error: 'Invalid user ID' });
+    }
+    // If using session auth, ensure requesting user matches unless workspace token present
+    if (!req.workspaceAccess && (!req.user || userId !== String(req.user._id))) {
+        return res.status(403).json({ success: false, error: 'Permission denied' });
+    }
+
+    const bookings = await Booking.find({ user: userId })
+        .populate('campground', 'title location price images')
+        .populate('user', 'username email')
+        .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: { bookings } });
+}));
+
+// ADD: fetch single booking detail
+app.get('/api/bookings/:id', authOrToken, catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ success: false, error: 'Invalid booking ID' });
+    }
+    const booking = await Booking.findById(id)
+        .populate('campground', 'title location price images')
+        .populate('user', 'username email');
+    if (!booking) {
+        return res.status(404).json({ success: false, error: 'Booking not found' });
+    }
+    // Session auth must match booking owner
+    if (!req.workspaceAccess && (!req.user || !booking.user._id.equals(req.user._id))) {
+        return res.status(403).json({ success: false, error: 'Permission denied' });
+    }
+    res.json({ success: true, data: { booking } });
 }));
 
 // Search and Category Routes

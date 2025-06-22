@@ -229,6 +229,18 @@ export const bookingAPI = {
     const response = await api.get<ApiResponse<{ bookings: Booking[] }>>('/api/bookings');
     return response.data;
   },
+
+  getByUser: async (userId: string, accessToken?: string) => {
+    const headers = accessToken ? { 'x-api-access-token': accessToken } : undefined;
+    const response = await api.get<ApiResponse<{ bookings: Booking[] }>>(`/api/bookings/user/${userId}`, { headers });
+    return response.data;
+  },
+
+  getById: async (bookingId: string, accessToken?: string) => {
+    const headers = accessToken ? { 'x-api-access-token': accessToken } : undefined;
+    const response = await api.get<ApiResponse<{ booking: Booking }>>(`/api/bookings/${bookingId}`, { headers });
+    return response.data;
+  }
 };
 
 // Response interceptor for error handling

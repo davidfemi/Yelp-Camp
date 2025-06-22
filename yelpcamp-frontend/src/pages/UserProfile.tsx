@@ -257,7 +257,7 @@ const UserProfile: React.FC = () => {
                                 variant="link"
                                 className="p-0 text-start fw-bold"
                                 style={{ textDecoration: 'none', color: '#4a5d23' }}
-                                onClick={() => navigate(`/campgrounds/${booking.campground._id}`)}
+                                onClick={() => navigate(`/bookings/${booking._id}`)}
                               >
                                 {booking.campground.title}
                               </Button>
@@ -302,7 +302,7 @@ const UserProfile: React.FC = () => {
                             <Button
                               variant="outline-primary"
                               size="sm"
-                              onClick={() => navigate(`/campgrounds/${booking.campground._id}`)}
+                              onClick={() => navigate(`/bookings/${booking._id}`)}
                               style={{ borderColor: '#4a5d23', color: '#4a5d23' }}
                             >
                               <i className="fas fa-eye me-1"></i>

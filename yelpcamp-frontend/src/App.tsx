@@ -16,6 +16,7 @@ import NewCampground from './pages/NewCampground';
 import EditCampground from './pages/EditCampground';
 import UserProfile from './pages/UserProfile';
 import ProtectedRoute from './components/ProtectedRoute';
+import BookingDetail from './pages/BookingDetail';
 
 import './App.css';
 
@@ -63,6 +64,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings/:id"
+            element={
+              <ProtectedRoute>
+                <BookingDetail />
               </ProtectedRoute>
             }
           />
