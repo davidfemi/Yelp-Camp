@@ -26,6 +26,12 @@ const geocoder = mbxGeocoding({ accessToken: mapBoxToken });
 
 const app = express();
 
+// ADD: trust proxy for secure cookies when behind reverse proxy (e.g. Render)
+if (process.env.NODE_ENV === 'production') {
+    // Ensures req.secure is set correctly and secure cookies work
+    app.set('trust proxy', 1);
+}
+
 // Database connection
 const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/myFirstDatabase';
 mongoose.connect(dbUrl, {
@@ -44,7 +50,7 @@ mongoose.set('strictQuery', true);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:5173'],
+    origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:5173', 'https://thecampground.vercel.app'],
     credentials: true
 }));
 app.use(mongoSanitize({ replaceWith: '_' }));
@@ -70,6 +76,7 @@ const sessionConfig = {
     cookie: {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
