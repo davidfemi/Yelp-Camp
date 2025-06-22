@@ -223,6 +223,36 @@ app.get('/api/auth/me', (req, res) => {
     }
 });
 
+// ADD: User Profile Route
+app.get('/api/users/profile', isLoggedIn, catchAsync(async (req, res) => {
+    // Basic user data
+    const userData = {
+        id: req.user._id,
+        username: req.user.username,
+        email: req.user.email,
+        createdAt: req.user.createdAt,
+    };
+
+    // Aggregate stats
+    const [campgroundCount, reviewCount] = await Promise.all([
+        Campground.countDocuments({ author: req.user._id }),
+        Review.countDocuments({ author: req.user._id })
+    ]);
+
+    res.json({
+        success: true,
+        data: {
+            user: {
+                ...userData,
+                stats: {
+                    campgrounds: campgroundCount,
+                    reviews: reviewCount
+                }
+            }
+        }
+    });
+}));
+
 // Campgrounds Routes
 app.get('/api/campgrounds', catchAsync(async (req, res) => {
     const { 
