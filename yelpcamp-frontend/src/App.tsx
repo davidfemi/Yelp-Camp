@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { updateIntercomPage } from './services/intercomService';
+import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import BackToTop from './components/BackToTop';
 import Home from './pages/Home';
@@ -15,6 +16,9 @@ import CampgroundDetail from './pages/CampgroundDetail';
 import NewCampground from './pages/NewCampground';
 import EditCampground from './pages/EditCampground';
 import UserProfile from './pages/UserProfile';
+import Shop from './pages/Shop';
+import ProductDetail from './pages/ProductDetail';
+import Orders from './pages/Orders';
 import ProtectedRoute from './components/ProtectedRoute';
 import BookingDetail from './pages/BookingDetail';
 
@@ -33,9 +37,10 @@ function IntercomRouteHandler() {
 
 function App() {
   return (
-    <div className="App">
-      <IntercomRouteHandler />
-      <Navbar />
+    <CartProvider>
+      <div className="App">
+        <IntercomRouteHandler />
+        <Navbar />
       <main className="container mt-4">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -43,6 +48,16 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/campgrounds" element={<Campgrounds />} />
           <Route path="/campgrounds/:id" element={<CampgroundDetail />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/products/:id" element={<ProductDetail />} />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/campgrounds/new"
             element={
@@ -93,6 +108,7 @@ function App() {
         pauseOnHover
       />
     </div>
+    </CartProvider>
   );
 }
 

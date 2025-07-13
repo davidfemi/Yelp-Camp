@@ -14,6 +14,8 @@ const User = require('./models/user');
 const Campground = require('./models/campground');
 const Review = require('./models/review');
 const Booking = require('./models/booking');
+const Product = require('./models/product');
+const Order = require('./models/order');
 
 // Import utilities
 const ExpressError = require('./utils/ExpressError');
@@ -177,7 +179,8 @@ app.post('/api/auth/register', catchAsync(async (req, res) => {
                     user: {
                         id: registeredUser._id,
                         username: registeredUser.username,
-                        email: registeredUser.email
+                        email: registeredUser.email,
+                        createdAt: registeredUser.createdAt
                     }
                 },
                 message: 'Registration successful'
@@ -198,7 +201,8 @@ app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
             user: {
                 id: req.user._id,
                 username: req.user.username,
-                email: req.user.email
+                email: req.user.email,
+                createdAt: req.user.createdAt
             }
         },
         message: 'Login successful'
@@ -228,7 +232,8 @@ app.get('/api/auth/me', (req, res) => {
                 user: {
                     id: req.user._id,
                     username: req.user.username,
-                    email: req.user.email
+                    email: req.user.email,
+                    createdAt: req.user.createdAt
                 }
             }
         });
@@ -712,6 +717,158 @@ app.get('/api/stats', catchAsync(async (req, res) => {
             pricing: priceStats[0] || { avgPrice: 0, minPrice: 0, maxPrice: 0 },
             topLocations: locationStats
         }
+    });
+}));
+
+// Shop/Products Routes
+app.get('/api/products', catchAsync(async (req, res) => {
+    const { category, inStock } = req.query;
+    
+    const query = {};
+    if (category) query.category = category;
+    if (inStock !== undefined) query.inStock = inStock === 'true';
+    
+    const products = await Product.find(query).sort({ name: 1 });
+    
+    res.json({
+        success: true,
+        data: { products }
+    });
+}));
+
+app.get('/api/products/:id', catchAsync(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+    
+    if (!product) {
+        return res.status(404).json({
+            success: false,
+            error: 'Product not found'
+        });
+    }
+    
+    res.json({
+        success: true,
+        data: { product }
+    });
+}));
+
+// Orders Routes
+app.post('/api/orders', isLoggedIn, catchAsync(async (req, res) => {
+    const { items, shippingAddress } = req.body;
+    
+    if (!items || items.length === 0) {
+        return res.status(400).json({
+            success: false,
+            error: 'Order must contain at least one item'
+        });
+    }
+    
+    if (!shippingAddress) {
+        return res.status(400).json({
+            success: false,
+            error: 'Shipping address is required'
+        });
+    }
+    
+    // Validate products exist and calculate total
+    let totalAmount = 0;
+    const orderItems = [];
+    
+    for (const item of items) {
+        const product = await Product.findById(item.productId);
+        if (!product) {
+            return res.status(400).json({
+                success: false,
+                error: `Product not found: ${item.productId}`
+            });
+        }
+        
+        if (!product.inStock) {
+            return res.status(400).json({
+                success: false,
+                error: `Product out of stock: ${product.name}`
+            });
+        }
+        
+        if (product.stockQuantity < item.quantity) {
+            return res.status(400).json({
+                success: false,
+                error: `Insufficient stock for ${product.name}. Available: ${product.stockQuantity}`
+            });
+        }
+        
+        const itemTotal = product.price * item.quantity;
+        totalAmount += itemTotal;
+        
+        orderItems.push({
+            product: product._id,
+            quantity: item.quantity,
+            price: product.price
+        });
+    }
+    
+    // Create order
+    const order = new Order({
+        user: req.user._id,
+        items: orderItems,
+        totalAmount,
+        shippingAddress
+    });
+    
+    await order.save();
+    
+    // Update stock quantities
+    for (const item of items) {
+        await Product.findByIdAndUpdate(
+            item.productId,
+            { $inc: { stockQuantity: -item.quantity } }
+        );
+    }
+    
+    await order.populate('items.product', 'name price image');
+    await order.populate('user', 'username email');
+    
+    res.status(201).json({
+        success: true,
+        data: { order },
+        message: 'Order placed successfully'
+    });
+}));
+
+app.get('/api/orders', isLoggedIn, catchAsync(async (req, res) => {
+    const orders = await Order.find({ user: req.user._id })
+        .populate('items.product', 'name price image')
+        .sort({ createdAt: -1 });
+    
+    res.json({
+        success: true,
+        data: { orders }
+    });
+}));
+
+app.get('/api/orders/:id', isLoggedIn, catchAsync(async (req, res) => {
+    const order = await Order.findById(req.params.id)
+        .populate('items.product', 'name price image')
+        .populate('user', 'username email');
+    
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            error: 'Order not found'
+        });
+    }
+    
+    // Check if user owns this order
+    if (!order.user._id.equals(req.user._id)) {
+        return res.status(403).json({
+            success: false,
+            error: 'Permission denied'
+        });
+    }
+    
+    res.json({
+        success: true,
+        data: { order }
     });
 }));
 

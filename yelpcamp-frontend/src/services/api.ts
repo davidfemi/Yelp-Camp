@@ -16,6 +16,7 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  createdAt?: string;
 }
 
 export interface UserProfile extends User {
@@ -102,6 +103,48 @@ export interface Booking {
   checkOutDate?: string;
   status: 'confirmed' | 'cancelled' | 'expired';
   createdAt: string;
+}
+
+export interface Product {
+  _id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  category: 'apparel' | 'accessories' | 'drinkware' | 'stationery';
+  inStock: boolean;
+  stockQuantity: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderItem {
+  product: Product;
+  quantity: number;
+  price: number;
+}
+
+export interface Order {
+  _id: string;
+  user: {
+    _id: string;
+    username: string;
+    email: string;
+  };
+  items: OrderItem[];
+  totalAmount: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  shippingAddress: {
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  orderNumber: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Auth API
@@ -241,6 +284,47 @@ export const bookingAPI = {
     const response = await api.get<ApiResponse<{ booking: Booking }>>(`/api/bookings/${bookingId}`, { headers });
     return response.data;
   }
+};
+
+// Products API
+export const productAPI = {
+  getAll: async (params?: { category?: string; inStock?: boolean }) => {
+    const response = await api.get<ApiResponse<{ products: Product[] }>>('/api/products', { params });
+    return response.data;
+  },
+
+  getById: async (id: string) => {
+    const response = await api.get<ApiResponse<{ product: Product }>>(`/api/products/${id}`);
+    return response.data;
+  },
+};
+
+// Orders API
+export const orderAPI = {
+  create: async (orderData: {
+    items: Array<{ productId: string; quantity: number }>;
+    shippingAddress: {
+      name: string;
+      address: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      country?: string;
+    };
+  }) => {
+    const response = await api.post<ApiResponse<{ order: Order }>>('/api/orders', orderData);
+    return response.data;
+  },
+
+  getUserOrders: async () => {
+    const response = await api.get<ApiResponse<{ orders: Order[] }>>('/api/orders');
+    return response.data;
+  },
+
+  getById: async (id: string) => {
+    const response = await api.get<ApiResponse<{ order: Order }>>(`/api/orders/${id}`);
+    return response.data;
+  },
 };
 
 // Response interceptor for error handling

@@ -1,10 +1,12 @@
 import React from 'react';
-import { Navbar as BootstrapNavbar, Nav, Container, Button } from 'react-bootstrap';
+import { Navbar as BootstrapNavbar, Nav, Container, Button, Badge } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 const Navbar: React.FC = () => {
   const { user, logout, isAuthenticated } = useAuth();
+  const { getCartItemCount } = useCart();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -28,6 +30,14 @@ const Navbar: React.FC = () => {
             <Nav.Link as={Link} to="/campgrounds">
               Campgrounds
             </Nav.Link>
+            <Nav.Link as={Link} to="/shop">
+              Shop
+              {isAuthenticated && getCartItemCount() > 0 && (
+                <Badge bg="success" className="ms-1">
+                  {getCartItemCount()}
+                </Badge>
+              )}
+            </Nav.Link>
             {isAuthenticated && (
               <Nav.Link as={Link} to="/campgrounds/new">
                 New Campground
@@ -38,6 +48,10 @@ const Navbar: React.FC = () => {
           <Nav className="ms-auto">
             {isAuthenticated ? (
               <>
+                <Nav.Link as={Link} to="/orders" className="me-2">
+                  <i className="fas fa-receipt me-1"></i>
+                  Orders
+                </Nav.Link>
                 <Nav.Link as={Link} to="/profile" className="me-2">
                   <i className="fas fa-user me-1"></i>
                   Profile
