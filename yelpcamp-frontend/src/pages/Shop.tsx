@@ -27,6 +27,12 @@ interface ShippingAddress {
   country: string;
 }
 
+// Utility function to truncate text for shop listing
+const truncateDescription = (text: string, maxLength: number = 60): string => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + '...';
+};
+
 const Shop: React.FC = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
@@ -238,7 +244,7 @@ const Shop: React.FC = () => {
                     {product.name}
                   </Card.Title>
                   <Card.Text className="text-muted small">
-                    {product.description}
+                    {truncateDescription(product.description)}
                   </Card.Text>
                   <div className="mt-auto">
                     <div className="d-flex justify-content-between align-items-center mb-2">
