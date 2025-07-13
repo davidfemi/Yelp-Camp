@@ -881,8 +881,9 @@ app.get('/sitemap.xml', catchAsync(async (req, res) => {
             : 'http://localhost:3000'
         );
     
-    // Get all campgrounds for the sitemap
+    // Get all campgrounds and products for the sitemap
     const campgrounds = await Campground.find({}, '_id title updatedAt').sort({ updatedAt: -1 });
+    const products = await Product.find({}, '_id name updatedAt').sort({ updatedAt: -1 });
     
     // Generate XML sitemap
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -899,6 +900,12 @@ app.get('/sitemap.xml', catchAsync(async (req, res) => {
         <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>${frontendUrl}/shop</loc>
+        <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.8</priority>
     </url>
     <url>
         <loc>${frontendUrl}/login</loc>
@@ -923,6 +930,21 @@ app.get('/sitemap.xml', catchAsync(async (req, res) => {
         <lastmod>${lastmod}</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
+    </url>`;
+    });
+
+    sitemap += `
+    <!-- Product Pages -->`;
+
+    // Add each product to sitemap
+    products.forEach(product => {
+        const lastmod = product.updatedAt ? product.updatedAt.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        sitemap += `
+    <url>
+        <loc>${frontendUrl}/products/${product._id}</loc>
+        <lastmod>${lastmod}</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
     </url>`;
     });
 

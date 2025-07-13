@@ -12,6 +12,7 @@ This document outlines the comprehensive SEO implementation for The Campgrounds 
 - **Automatically includes**:
   - Homepage and main pages
   - All campground detail pages
+  - Shop page and all product detail pages
   - Proper last modified dates
   - SEO priority settings
 
@@ -165,6 +166,8 @@ Each campground page includes rich structured data:
 - [x] Homepage SEO optimization
 - [x] Campground listing page SEO
 - [x] Individual campground page SEO
+- [x] Shop page SEO optimization
+- [x] Individual product page SEO
 - [x] Schema.org structured data
 - [x] Open Graph implementation
 - [x] Twitter Cards support

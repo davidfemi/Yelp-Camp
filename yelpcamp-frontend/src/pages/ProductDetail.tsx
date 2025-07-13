@@ -323,17 +323,6 @@ const ProductDetail: React.FC = () => {
                     ${product.price.toFixed(2)}
                   </h2>
                 </div>
-                
-                {/* Description */}
-                <div className="mb-4">
-                  <h5 className="mb-3 fw-semibold" style={{ color: '#2c3e50' }}>
-                    <i className="fas fa-info-circle me-2"></i>
-                    Description
-                  </h5>
-                  <p className="text-muted lh-lg" style={{ fontSize: '1.1rem' }}>
-                    {product.description}
-                  </p>
-                </div>
 
                 {/* Product Details Card */}
                 <Card className="mb-4 border-0" style={{ backgroundColor: 'rgba(74, 93, 35, 0.05)' }}>
@@ -469,6 +458,46 @@ const ProductDetail: React.FC = () => {
                     <i className="fas fa-arrow-left me-2"></i>
                     Back to Shop
                   </Button>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Product Description Card */}
+        <Row className="mt-4">
+          <Col>
+            <Card className="border-0 shadow-lg">
+              <Card.Body className="p-4">
+                <div className="d-flex align-items-center mb-3">
+                  <div style={{
+                    width: '50px',
+                    height: '50px',
+                    backgroundColor: 'rgba(74, 93, 35, 0.1)',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: '15px'
+                  }}>
+                    <i className="fas fa-info-circle" style={{ color: '#4a5d23', fontSize: '1.5rem' }}></i>
+                  </div>
+                  <h3 className="mb-0 fw-bold" style={{ color: '#2c3e50' }}>
+                    Product Description
+                  </h3>
+                </div>
+                <div style={{ 
+                  backgroundColor: 'rgba(74, 93, 35, 0.02)',
+                  padding: '25px',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(74, 93, 35, 0.1)'
+                }}>
+                  <p className="text-muted lh-lg mb-0" style={{ 
+                    fontSize: '1.1rem',
+                    lineHeight: '1.8'
+                  }}>
+                    {product.description}
+                  </p>
                 </div>
               </Card.Body>
             </Card>

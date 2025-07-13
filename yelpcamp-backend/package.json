@@ -10,6 +10,7 @@
     "postinstall": "echo 'Backend dependencies installed successfully'",
     "dev": "nodemon server.js",
     "enhance-descriptions": "node enhance-descriptions.js",
+    "enhance-products": "node enhance-product-descriptions.js",
     "populate-bookings": "node populate-booking-data.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
