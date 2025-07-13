@@ -753,8 +753,8 @@ app.get('/api/products/:id', catchAsync(async (req, res) => {
 }));
 
 // Orders Routes
-app.post('/api/orders', isLoggedIn, catchAsync(async (req, res) => {
-    const { items, shippingAddress } = req.body;
+app.post('/api/orders', authOrToken, catchAsync(async (req, res) => {
+    const { items, shippingAddress, userId } = req.body;
     
     if (!items || items.length === 0) {
         return res.status(400).json({
@@ -768,6 +768,29 @@ app.post('/api/orders', isLoggedIn, catchAsync(async (req, res) => {
             success: false,
             error: 'Shipping address is required'
         });
+    }
+    
+    // Determine user ID based on authentication method
+    let orderUserId;
+    if (req.workspaceAccess) {
+        // Token-based authentication - require userId in request body
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                error: 'userId is required when using API token authentication'
+            });
+        }
+        // Validate userId format
+        if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid userId format'
+            });
+        }
+        orderUserId = userId;
+    } else {
+        // Session-based authentication - use authenticated user
+        orderUserId = req.user._id;
     }
     
     // Validate products exist and calculate total
@@ -809,7 +832,7 @@ app.post('/api/orders', isLoggedIn, catchAsync(async (req, res) => {
     
     // Create order
     const order = new Order({
-        user: req.user._id,
+        user: orderUserId,
         items: orderItems,
         totalAmount,
         shippingAddress

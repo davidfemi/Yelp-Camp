@@ -86,9 +86,9 @@ Creates a new product order and updates stock quantities.
 
 **Endpoint:** `POST /api/orders`
 
-**Authentication:** Required (Session-based)
+**Authentication:** Required (Session-based or Token-based)
 
-**Request Body:**
+**Request Body (Session-based authentication):**
 ```json
 {
   "items": [
@@ -110,6 +110,37 @@ Creates a new product order and updates stock quantities.
     "country": "USA"
   }
 }
+```
+
+**Request Body (Token-based authentication):**
+```json
+{
+  "userId": "64f8a123456789abcdef0120",
+  "items": [
+    {
+      "productId": "64f8a123456789abcdef0123",
+      "quantity": 2
+    },
+    {
+      "productId": "64f8a123456789abcdef0124",
+      "quantity": 1
+    }
+  ],
+  "shippingAddress": {
+    "name": "John Doe",
+    "address": "123 Main St",
+    "city": "San Francisco",
+    "state": "CA",
+    "zipCode": "94102",
+    "country": "USA"
+  }
+}
+```
+
+**Headers (Token-based authentication):**
+```
+Authorization: Bearer YOUR_API_ACCESS_TOKEN
+Content-Type: application/json
 ```
 
 **Success Response:** `201 Created`
@@ -158,10 +189,12 @@ Creates a new product order and updates stock quantities.
 
 **Error Responses:**
 - `400 Bad Request`: Missing items or shipping address
+- `400 Bad Request`: Missing userId (when using token authentication)
+- `400 Bad Request`: Invalid userId format
 - `400 Bad Request`: Product not found
 - `400 Bad Request`: Product out of stock
 - `400 Bad Request`: Insufficient stock quantity
-- `401 Unauthorized`: User not authenticated
+- `401 Unauthorized`: User not authenticated or invalid token
 
 ### Get User Orders
 Retrieves all orders for the authenticated user.
@@ -539,7 +572,7 @@ Retrieves details for a specific booking.
 
 ## Integration Examples
 
-### JavaScript/Node.js - Create Order
+### JavaScript/Node.js - Create Order (Session-based)
 ```javascript
 const axios = require('axios');
 
@@ -577,6 +610,48 @@ const orderData = {
 };
 
 createOrder(orderData.items, orderData.shippingAddress);
+```
+
+### JavaScript/Node.js - Create Order (Token-based)
+```javascript
+const axios = require('axios');
+
+const createOrderWithToken = async (userId, items, shippingAddress) => {
+  try {
+    const response = await axios.post('http://localhost:5000/api/orders', {
+      userId,
+      items,
+      shippingAddress
+    }, {
+      headers: {
+        'Authorization': `Bearer ${process.env.API_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error creating order:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// Usage
+const orderData = {
+  userId: '64f8a123456789abcdef0120',
+  items: [
+    { productId: '64f8a123456789abcdef0123', quantity: 2 }
+  ],
+  shippingAddress: {
+    name: 'John Doe',
+    address: '123 Main St',
+    city: 'San Francisco',
+    state: 'CA',
+    zipCode: '94102'
+  }
+};
+
+createOrderWithToken(orderData.userId, orderData.items, orderData.shippingAddress);
 ```
 
 ### JavaScript/Node.js - Get Bookings with API Token
@@ -637,12 +712,35 @@ create_order(order_data["items"], order_data["shippingAddress"], session_cookies
 
 ### cURL Examples
 
-#### Create Order
+#### Create Order (Session-based)
 ```bash
 curl -X POST "http://localhost:5000/api/orders" \
   -H "Content-Type: application/json" \
   -b "session_cookie_name=session_value" \
   -d '{
+    "items": [
+      {
+        "productId": "64f8a123456789abcdef0123",
+        "quantity": 2
+      }
+    ],
+    "shippingAddress": {
+      "name": "John Doe",
+      "address": "123 Main St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipCode": "94102"
+    }
+  }'
+```
+
+#### Create Order (Token-based)
+```bash
+curl -X POST "http://localhost:5000/api/orders" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN" \
+  -d '{
+    "userId": "64f8a123456789abcdef0120",
     "items": [
       {
         "productId": "64f8a123456789abcdef0123",
