@@ -20,6 +20,7 @@ const Order = require('./models/order');
 // Import utilities
 const ExpressError = require('./utils/ExpressError');
 const catchAsync = require('./utils/catchAsync');
+const RefundService = require('./utils/refundService');
 
 // Import Mapbox geocoding
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
@@ -528,7 +529,15 @@ app.post('/api/campgrounds/:id/bookings', isLoggedIn, catchAsync(async (req, res
         user: req.user._id,
         campground: id,
         days: days,
-        totalPrice: totalPrice
+        totalPrice: totalPrice,
+        // Simulate payment for demo purposes
+        payment: {
+            method: 'simulated',
+            transactionId: `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            paymentIntentId: `pi_sim_${Date.now()}`,
+            paid: true,
+            paidAt: new Date()
+        }
     });
 
     console.log('Saving booking to database...');
@@ -835,7 +844,15 @@ app.post('/api/orders', authOrToken, catchAsync(async (req, res) => {
         user: orderUserId,
         items: orderItems,
         totalAmount,
-        shippingAddress
+        shippingAddress,
+        // Simulate payment for demo purposes
+        payment: {
+            method: 'simulated',
+            transactionId: `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            paymentIntentId: `pi_sim_${Date.now()}`,
+            paid: true,
+            paidAt: new Date()
+        }
     });
     
     await order.save();
@@ -892,6 +909,303 @@ app.get('/api/orders/:id', isLoggedIn, catchAsync(async (req, res) => {
     res.json({
         success: true,
         data: { order }
+    });
+}));
+
+// Cancel Order Route
+app.patch('/api/orders/:id/cancel', authOrToken, catchAsync(async (req, res) => {
+    const order = await Order.findById(req.params.id).populate('items.product');
+    
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            error: 'Order not found'
+        });
+    }
+    
+    // Determine user ID based on authentication method
+    let userId;
+    if (req.workspaceAccess) {
+        // Token-based authentication - check if order belongs to user
+        const { userId: requestUserId } = req.body;
+        if (!requestUserId) {
+            return res.status(400).json({
+                success: false,
+                error: 'userId is required when using API token authentication'
+            });
+        }
+        if (!requestUserId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid userId format'
+            });
+        }
+        userId = requestUserId;
+    } else {
+        // Session-based authentication
+        userId = req.user._id;
+    }
+    
+    // Check if user owns this order
+    if (!order.user.equals(userId)) {
+        return res.status(403).json({
+            success: false,
+            error: 'Permission denied - you can only cancel your own orders'
+        });
+    }
+    
+    // Check if order can be cancelled (only pending and processing orders)
+    if (!['pending', 'processing'].includes(order.status)) {
+        return res.status(400).json({
+            success: false,
+            error: `Cannot cancel order with status '${order.status}'. Only pending and processing orders can be cancelled.`
+        });
+    }
+    
+    // Restore stock quantities for cancelled order
+    for (const item of order.items) {
+        if (item.product) {
+            await Product.findByIdAndUpdate(
+                item.product._id,
+                { $inc: { stockQuantity: item.quantity } }
+            );
+        }
+    }
+    
+    // Update order status to cancelled
+    order.status = 'cancelled';
+    await order.save();
+
+    // Process automatic refund
+    let refundResult = null;
+    if (RefundService.isRefundAllowed(order)) {
+        refundResult = await RefundService.processRefund(order, 'Order cancelled by user');
+    }
+    
+    await order.populate('user', 'username email');
+    
+    res.json({
+        success: true,
+        data: { 
+            order,
+            refund: refundResult
+        },
+        message: refundResult?.success 
+            ? `Order cancelled and refund of $${refundResult.refund.amount} processed successfully`
+            : 'Order cancelled successfully'
+    });
+}));
+
+// Cancel Booking Route
+app.patch('/api/bookings/:id/cancel', authOrToken, catchAsync(async (req, res) => {
+    const booking = await Booking.findById(req.params.id);
+    
+    if (!booking) {
+        return res.status(404).json({
+            success: false,
+            error: 'Booking not found'
+        });
+    }
+    
+    // Determine user ID based on authentication method
+    let userId;
+    if (req.workspaceAccess) {
+        // Token-based authentication - check if booking belongs to user
+        const { userId: requestUserId } = req.body;
+        if (!requestUserId) {
+            return res.status(400).json({
+                success: false,
+                error: 'userId is required when using API token authentication'
+            });
+        }
+        if (!requestUserId.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid userId format'
+            });
+        }
+        userId = requestUserId;
+    } else {
+        // Session-based authentication
+        userId = req.user._id;
+    }
+    
+    // Check if user owns this booking
+    if (!booking.user.equals(userId)) {
+        return res.status(403).json({
+            success: false,
+            error: 'Permission denied - you can only cancel your own bookings'
+        });
+    }
+    
+    // Check if booking can be cancelled (only confirmed bookings)
+    if (booking.status !== 'confirmed') {
+        return res.status(400).json({
+            success: false,
+            error: `Cannot cancel booking with status '${booking.status}'. Only confirmed bookings can be cancelled.`
+        });
+    }
+    
+    // Update booking status to cancelled
+    booking.status = 'cancelled';
+    await booking.save();
+
+    // Process automatic refund
+    let refundResult = null;
+    if (RefundService.isRefundAllowed(booking)) {
+        refundResult = await RefundService.processRefund(booking, 'Booking cancelled by user');
+    }
+    
+    await booking.populate('user', 'username email');
+    await booking.populate('campground', 'title location price');
+    
+    res.json({
+        success: true,
+        data: { 
+            booking,
+            refund: refundResult
+        },
+        message: refundResult?.success 
+            ? `Booking cancelled and refund of $${refundResult.refund.amount} processed successfully`
+            : 'Booking cancelled successfully'
+    });
+}));
+
+// Refund Routes
+app.get('/api/orders/:id/refund-policy', authOrToken, catchAsync(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            error: 'Order not found'
+        });
+    }
+
+    // Check ownership
+    let userId = req.workspaceAccess ? req.body.userId : req.user._id;
+    if (!order.user.equals(userId)) {
+        return res.status(403).json({
+            success: false,
+            error: 'Permission denied'
+        });
+    }
+
+    const policy = RefundService.getRefundPolicy('order');
+    const refundAmount = RefundService.calculateRefundAmount(order);
+    const isAllowed = RefundService.isRefundAllowed(order);
+
+    res.json({
+        success: true,
+        data: {
+            policy,
+            eligibleRefundAmount: refundAmount,
+            isRefundAllowed: isAllowed,
+            currentRefundStatus: order.refund?.status || 'none'
+        }
+    });
+}));
+
+app.get('/api/bookings/:id/refund-policy', authOrToken, catchAsync(async (req, res) => {
+    const booking = await Booking.findById(req.params.id);
+    
+    if (!booking) {
+        return res.status(404).json({
+            success: false,
+            error: 'Booking not found'
+        });
+    }
+
+    // Check ownership
+    let userId = req.workspaceAccess ? req.body.userId : req.user._id;
+    if (!booking.user.equals(userId)) {
+        return res.status(403).json({
+            success: false,
+            error: 'Permission denied'
+        });
+    }
+
+    const policy = RefundService.getRefundPolicy('booking');
+    const refundAmount = RefundService.calculateRefundAmount(booking);
+    const isAllowed = RefundService.isRefundAllowed(booking);
+
+    res.json({
+        success: true,
+        data: {
+            policy,
+            eligibleRefundAmount: refundAmount,
+            isRefundAllowed: isAllowed,
+            currentRefundStatus: booking.refund?.status || 'none'
+        }
+    });
+}));
+
+// Manual refund processing (admin or special cases)
+app.post('/api/orders/:id/process-refund', authOrToken, catchAsync(async (req, res) => {
+    const order = await Order.findById(req.params.id).populate('items.product');
+    
+    if (!order) {
+        return res.status(404).json({
+            success: false,
+            error: 'Order not found'
+        });
+    }
+
+    // Check ownership
+    let userId = req.workspaceAccess ? req.body.userId : req.user._id;
+    if (!order.user.equals(userId)) {
+        return res.status(403).json({
+            success: false,
+            error: 'Permission denied'
+        });
+    }
+
+    const { reason, amount } = req.body;
+    const refundResult = await RefundService.processRefund(order, reason, amount);
+
+    res.json({
+        success: refundResult.success,
+        data: {
+            order,
+            refund: refundResult.refund
+        },
+        message: refundResult.success 
+            ? `Refund of $${refundResult.refund.amount} processed successfully`
+            : refundResult.error
+    });
+}));
+
+app.post('/api/bookings/:id/process-refund', authOrToken, catchAsync(async (req, res) => {
+    const booking = await Booking.findById(req.params.id);
+    
+    if (!booking) {
+        return res.status(404).json({
+            success: false,
+            error: 'Booking not found'
+        });
+    }
+
+    // Check ownership
+    let userId = req.workspaceAccess ? req.body.userId : req.user._id;
+    if (!booking.user.equals(userId)) {
+        return res.status(403).json({
+            success: false,
+            error: 'Permission denied'
+        });
+    }
+
+    const { reason, amount } = req.body;
+    const refundResult = await RefundService.processRefund(booking, reason, amount);
+
+    res.json({
+        success: refundResult.success,
+        data: {
+            booking,
+            refund: refundResult.refund
+        },
+        message: refundResult.success 
+            ? `Refund of $${refundResult.refund.amount} processed successfully`
+            : refundResult.error
     });
 }));
 

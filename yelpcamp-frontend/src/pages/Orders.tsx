@@ -24,9 +24,10 @@ interface OrderDetailProps {
   booking: Booking | null;
   show: boolean;
   onHide: () => void;
+  onCancel: (type: 'order' | 'booking', id: string) => void;
 }
 
-const OrderDetailModal: React.FC<OrderDetailProps> = ({ order, booking, show, onHide }) => {
+const OrderDetailModal: React.FC<OrderDetailProps> = ({ order, booking, show, onHide, onCancel }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -57,6 +58,24 @@ const OrderDetailModal: React.FC<OrderDetailProps> = ({ order, booking, show, on
 
   const item = order || booking;
   if (!item) return null;
+
+  const canCancel = () => {
+    if (order) {
+      return ['pending', 'processing'].includes(order.status);
+    }
+    if (booking) {
+      return booking.status === 'confirmed';
+    }
+    return false;
+  };
+
+  const handleCancel = () => {
+    if (order) {
+      onCancel('order', order._id);
+    } else if (booking) {
+      onCancel('booking', booking._id);
+    }
+  };
 
   return (
     <Modal show={show} onHide={onHide} size="lg">
@@ -220,6 +239,54 @@ const OrderDetailModal: React.FC<OrderDetailProps> = ({ order, booking, show, on
                       </div>
                     </div>
                   )}
+
+                  {item.status === 'cancelled' && item.refund && item.refund.status === 'processed' && (
+                    <div className="activity-item mb-3">
+                      <div className="d-flex align-items-center">
+                        <div className="activity-icon me-3">
+                          <i className="fas fa-undo text-info"></i>
+                        </div>
+                        <div>
+                          <div className="fw-bold">Refund Processed</div>
+                          <small className="text-muted">
+                            ${item.refund.amount} refunded on {new Date(item.refund.processedAt!).toLocaleDateString()}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {item.status === 'cancelled' && item.refund && item.refund.status === 'failed' && (
+                    <div className="activity-item mb-3">
+                      <div className="d-flex align-items-center">
+                        <div className="activity-icon me-3">
+                          <i className="fas fa-exclamation-triangle text-warning"></i>
+                        </div>
+                        <div>
+                          <div className="fw-bold">Refund Failed</div>
+                          <small className="text-muted">
+                            {item.refund.failureReason || 'Please contact support'}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Payment Information */}
+                  {item.payment && (
+                    <div className="mt-3 pt-3 border-top">
+                      <h6 className="mb-2">Payment Details</h6>
+                      <div className="small text-muted">
+                        <div>Method: {item.payment.method.charAt(0).toUpperCase() + item.payment.method.slice(1)}</div>
+                        {item.payment.transactionId && (
+                          <div>Transaction: {item.payment.transactionId}</div>
+                        )}
+                        {item.payment.paidAt && (
+                          <div>Paid: {new Date(item.payment.paidAt).toLocaleDateString()}</div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Card.Body>
             </Card>
@@ -230,6 +297,16 @@ const OrderDetailModal: React.FC<OrderDetailProps> = ({ order, booking, show, on
         <Button variant="secondary" onClick={onHide}>
           Close
         </Button>
+        {canCancel() && (
+          <Button 
+            variant="outline-danger" 
+            onClick={handleCancel}
+            className="me-2"
+          >
+            <i className="fas fa-times me-2"></i>
+            Cancel {order ? 'Order' : 'Booking'}
+          </Button>
+        )}
         {booking && (
           <Button 
             variant="primary" 
@@ -256,6 +333,11 @@ const Orders: React.FC = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelType, setCancelType] = useState<'order' | 'booking'>('order');
+  const [cancelId, setCancelId] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -332,6 +414,70 @@ const Orders: React.FC = () => {
     setShowDetailModal(true);
   };
 
+  const handleCancelRequest = (type: 'order' | 'booking', id: string) => {
+    setCancelType(type);
+    setCancelId(id);
+    setShowCancelConfirm(true);
+    setShowDetailModal(false);
+  };
+
+  const handleCancelConfirm = async () => {
+    setCancelLoading(true);
+    setError('');
+    
+    try {
+      if (cancelType === 'order') {
+        const response = await orderAPI.cancel(cancelId);
+        if (response.success) {
+          const message = response.data?.refund?.success 
+            ? `Order cancelled and $${response.data.refund.refund.amount} refund processed`
+            : 'Order cancelled successfully';
+          setSuccessMessage(message);
+          
+          // Update the order in the local state
+          setOrders(prev => prev.map(order => 
+            order._id === cancelId ? { 
+              ...order, 
+              status: 'cancelled' as const,
+              refund: response.data?.refund?.refund
+            } : order
+          ));
+          // Clear success message after 5 seconds
+          setTimeout(() => setSuccessMessage(''), 5000);
+        } else {
+          setError(response.error || 'Failed to cancel order');
+        }
+      } else {
+        const response = await bookingAPI.cancel(cancelId);
+        if (response.success) {
+          const refundData = (response.data as any)?.refund;
+          const message = refundData?.success 
+            ? `Booking cancelled and $${refundData.refund.amount} refund processed`
+            : 'Booking cancelled successfully';
+          setSuccessMessage(message);
+          
+          // Update the booking in the local state
+          setBookings(prev => prev.map(booking => 
+            booking._id === cancelId ? { 
+              ...booking, 
+              status: 'cancelled' as const,
+              refund: refundData?.refund
+            } : booking
+          ));
+          // Clear success message after 5 seconds
+          setTimeout(() => setSuccessMessage(''), 5000);
+        } else {
+          setError(response.error || 'Failed to cancel booking');
+        }
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.error || `Failed to cancel ${cancelType}`);
+    } finally {
+      setCancelLoading(false);
+      setShowCancelConfirm(false);
+    }
+  };
+
   const allItems = [
     ...orders.map(order => ({ ...order, type: 'order' as const })),
     ...bookings.map(booking => ({ ...booking, type: 'booking' as const }))
@@ -400,6 +546,13 @@ const Orders: React.FC = () => {
         <Alert variant="danger" className="mb-4">
           <i className="fas fa-exclamation-triangle me-2"></i>
           {error}
+        </Alert>
+      )}
+
+      {successMessage && (
+        <Alert variant="success" className="mb-4">
+          <i className="fas fa-check-circle me-2"></i>
+          {successMessage}
         </Alert>
       )}
 
@@ -626,7 +779,52 @@ const Orders: React.FC = () => {
         booking={selectedBooking}
         show={showDetailModal}
         onHide={() => setShowDetailModal(false)}
+        onCancel={handleCancelRequest}
       />
+
+      {/* Cancel Confirmation Modal */}
+      <Modal show={showCancelConfirm} onHide={() => setShowCancelConfirm(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Cancellation</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-center">
+            <i className="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+            <h5>Are you sure you want to cancel this {cancelType}?</h5>
+            <p className="text-muted">
+              {cancelType === 'order' 
+                ? 'This action cannot be undone. Your order will be cancelled and stock will be restored.' 
+                : 'This action cannot be undone. Your booking will be cancelled.'}
+            </p>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowCancelConfirm(false)}
+            disabled={cancelLoading}
+          >
+            Keep {cancelType === 'order' ? 'Order' : 'Booking'}
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={handleCancelConfirm}
+            disabled={cancelLoading}
+          >
+            {cancelLoading ? (
+              <>
+                <Spinner animation="border" size="sm" className="me-2" />
+                Cancelling...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-times me-2"></i>
+                Yes, Cancel {cancelType === 'order' ? 'Order' : 'Booking'}
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

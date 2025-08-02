@@ -313,7 +313,7 @@ main {
 .back-to-top {
   position: fixed;
   bottom: 2rem;
-  right: 2rem;
+  left: 2rem;
   z-index: 1000;
   background: var(--yc-gradient-primary);
   color: white;
@@ -418,7 +418,7 @@ main {
   
   .back-to-top {
     bottom: 1.5rem;
-    right: 1.5rem;
+    left: 1.5rem;
     width: 3rem;
     height: 3rem;
     font-size: 1rem;

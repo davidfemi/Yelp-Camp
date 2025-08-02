@@ -80,6 +80,23 @@ export interface CampgroundsResponse {
   pagination: PaginationInfo;
 }
 
+export interface Payment {
+  method: 'simulated' | 'stripe' | 'paypal' | 'credit_card';
+  transactionId?: string;
+  paymentIntentId?: string;
+  paid: boolean;
+  paidAt?: string;
+}
+
+export interface Refund {
+  status: 'none' | 'pending' | 'processed' | 'failed';
+  amount: number;
+  refundId?: string;
+  reason?: string;
+  processedAt?: string;
+  failureReason?: string;
+}
+
 export interface Booking {
   _id: string;
   user: {
@@ -103,6 +120,8 @@ export interface Booking {
   checkOutDate?: string;
   status: 'confirmed' | 'cancelled' | 'expired';
   createdAt: string;
+  payment?: Payment;
+  refund?: Refund;
 }
 
 export interface Product {
@@ -145,6 +164,8 @@ export interface Order {
   orderNumber: string;
   createdAt: string;
   updatedAt: string;
+  payment?: Payment;
+  refund?: Refund;
 }
 
 // Auth API
@@ -283,6 +304,29 @@ export const bookingAPI = {
     const headers = accessToken ? { 'x-api-access-token': accessToken } : undefined;
     const response = await api.get<ApiResponse<{ booking: Booking }>>(`/api/bookings/${bookingId}`, { headers });
     return response.data;
+  },
+
+  cancel: async (id: string) => {
+    const response = await api.patch<ApiResponse<{ booking: Booking; refund?: any }>>(`/api/bookings/${id}/cancel`, {});
+    return response.data;
+  },
+
+  getRefundPolicy: async (id: string) => {
+    const response = await api.get<ApiResponse<{
+      policy: any;
+      eligibleRefundAmount: number;
+      isRefundAllowed: boolean;
+      currentRefundStatus: string;
+    }>>(`/api/bookings/${id}/refund-policy`);
+    return response.data;
+  },
+
+  processRefund: async (id: string, reason?: string, amount?: number) => {
+    const response = await api.post<ApiResponse<{ booking: Booking; refund: any }>>(`/api/bookings/${id}/process-refund`, {
+      reason,
+      amount
+    });
+    return response.data;
   }
 };
 
@@ -323,6 +367,29 @@ export const orderAPI = {
 
   getById: async (id: string) => {
     const response = await api.get<ApiResponse<{ order: Order }>>(`/api/orders/${id}`);
+    return response.data;
+  },
+
+  cancel: async (id: string) => {
+    const response = await api.patch<ApiResponse<{ order: Order; refund?: any }>>(`/api/orders/${id}/cancel`, {});
+    return response.data;
+  },
+
+  getRefundPolicy: async (id: string) => {
+    const response = await api.get<ApiResponse<{
+      policy: any;
+      eligibleRefundAmount: number;
+      isRefundAllowed: boolean;
+      currentRefundStatus: string;
+    }>>(`/api/orders/${id}/refund-policy`);
+    return response.data;
+  },
+
+  processRefund: async (id: string, reason?: string, amount?: number) => {
+    const response = await api.post<ApiResponse<{ order: Order; refund: any }>>(`/api/orders/${id}/process-refund`, {
+      reason,
+      amount
+    });
     return response.data;
   },
 };

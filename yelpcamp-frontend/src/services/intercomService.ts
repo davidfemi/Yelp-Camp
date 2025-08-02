@@ -4,6 +4,17 @@ let isBooted = false;
 // Get Intercom app ID from environment variables
 const INTERCOM_APP_ID = process.env.REACT_APP_INTERCOM_APP_ID || 'hqd6b4qh';
 
+// Temporarily disable Intercom to prevent errors
+const DISABLE_INTERCOM = false;
+
+// Check if Intercom should be enabled
+const isIntercomEnabled = () => {
+  // Return false to disable Intercom entirely
+  if (DISABLE_INTERCOM) return false;
+  
+  return typeof window !== 'undefined' && window.Intercom && INTERCOM_APP_ID;
+};
+
 // Booking-related types for better type safety
 interface BookingStats {
   total_bookings: number;
@@ -82,14 +93,30 @@ const calculateBookingStats = (bookings: any[]): BookingStats => {
 
 // Update Intercom with user data including booking information
 export const updateIntercomUser = (user: any, bookings?: any[]) => {
+  // Skip if Intercom is not enabled
+  if (!isIntercomEnabled()) {
+    return;
+  }
+
   if (!user) {
-    // If no user, shutdown Intercom session and reset boot state
-    window.Intercom && window.Intercom('shutdown');
-    // Boot Intercom for logged-out state
-    window.Intercom && window.Intercom('boot', {
-      app_id: INTERCOM_APP_ID
-    });
-    isBooted = false;
+    try {
+      // If no user, shutdown Intercom session and reset boot state
+      window.Intercom('shutdown');
+      isBooted = false;
+    } catch (error) {
+      console.warn('Intercom shutdown failed:', error);
+    }
+    return;
+  }
+
+  // Validate required fields
+  const userId = user.id || user._id;
+  const userEmail = user.email;
+  const userName = user.username || user.name;
+
+  // Skip if missing critical data
+  if (!userId || !userEmail) {
+    console.warn('Intercom: Missing required user data (id or email)', { userId, userEmail });
     return;
   }
 
@@ -98,9 +125,9 @@ export const updateIntercomUser = (user: any, bookings?: any[]) => {
 
   const userData = {
     app_id: INTERCOM_APP_ID,
-    name: user.username || user.name,
-    email: user.email,
-    user_id: user.id, // Use only the user ID for consistent user identification in Intercom
+    name: userName || 'User',
+    email: userEmail,
+    user_id: String(userId), // Ensure it's a string
     created_at: user.createdAt ? Math.floor(new Date(user.createdAt).getTime() / 1000) : Math.floor(Date.now() / 1000),
     role: user.role || 'user',
     website: user.website || 'thecampground.vercel.app',
@@ -128,19 +155,23 @@ export const updateIntercomUser = (user: any, bookings?: any[]) => {
     ...(user.signup_source && { signup_source: user.signup_source })
   };
 
-  if (!isBooted) {
-    // First time - boot with user data
-    window.Intercom && window.Intercom('boot', userData);
-    isBooted = true;
-  } else {
-    // Subsequent updates - use update
-    window.Intercom && window.Intercom('update', userData);
+  try {
+    if (!isBooted) {
+      // First time - boot with user data
+      window.Intercom('boot', userData);
+      isBooted = true;
+    } else {
+      // Subsequent updates - use update
+      window.Intercom('update', userData);
+    }
+  } catch (error) {
+    console.warn('Intercom update failed:', error);
   }
 };
 
 // Track booking events
 export const trackBookingEvent = (eventName: string, bookingData: any, userData?: any) => {
-  if (!window.Intercom) return;
+  if (!isIntercomEnabled()) return;
 
   const eventData = {
     event_name: eventName,
@@ -161,7 +192,11 @@ export const trackBookingEvent = (eventName: string, bookingData: any, userData?
   };
 
   // Track the event
-  window.Intercom && window.Intercom('trackEvent', eventName, eventData.metadata);
+  try {
+    window.Intercom('trackEvent', eventName, eventData.metadata);
+  } catch (error) {
+    console.warn('Intercom trackEvent failed:', error);
+  }
   
   console.log(`📊 Tracked Intercom event: ${eventName}`, eventData);
 };
@@ -188,7 +223,7 @@ export const trackBookingCancelled = (booking: any, user?: any) => {
 };
 
 export const trackCampgroundViewed = (campground: any, user?: any) => {
-  if (!window.Intercom) return;
+  if (!isIntercomEnabled()) return;
   
   const metadata = {
     campground_id: campground._id || campground.id,
@@ -203,7 +238,11 @@ export const trackCampgroundViewed = (campground: any, user?: any) => {
     ...(user && { user_id: user.id })
   };
 
-  window.Intercom && window.Intercom('trackEvent', bookingEvents.CAMPGROUND_VIEWED, metadata);
+  try {
+    window.Intercom('trackEvent', bookingEvents.CAMPGROUND_VIEWED, metadata);
+  } catch (error) {
+    console.warn('Intercom trackEvent failed:', error);
+  }
 };
 
 // Enhanced user update with booking data
@@ -229,39 +268,47 @@ export const updateIntercomWithBookings = async (user: any) => {
 
 // Update Intercom when URL changes
 export const updateIntercomPage = () => {
-  if (window.Intercom) {
+  if (!isIntercomEnabled()) return;
+  
+  try {
     window.Intercom('update', {
       last_request_at: Math.floor(Date.now() / 1000)
     });
+  } catch (error) {
+    console.warn('Intercom page update failed:', error);
   }
 };
 
 // Manual show function
 export const showIntercom = () => {
-  if (window.Intercom) {
+  if (!isIntercomEnabled()) return;
+  
+  try {
     window.Intercom('show');
+  } catch (error) {
+    console.warn('Intercom show failed:', error);
   }
 };
 
 // Manual hide function
 export const hideIntercom = () => {
-  if (window.Intercom) {
+  if (!isIntercomEnabled()) return;
+  
+  try {
     window.Intercom('hide');
+  } catch (error) {
+    console.warn('Intercom hide failed:', error);
   }
 };
 
 // Shutdown Intercom (useful for logout)
 export const shutdownIntercom = () => {
-  if (window.Intercom) {
+  if (!isIntercomEnabled()) return;
+  
+  try {
     window.Intercom('shutdown');
-    
-    // Reinitialize Intercom for anonymous visitors after logout
-    setTimeout(() => {
-      window.Intercom('boot', {
-        app_id: INTERCOM_APP_ID
-      });
-    }, 100); // Small delay to ensure shutdown completes
-    
     isBooted = false;
+  } catch (error) {
+    console.warn('Intercom shutdown failed:', error);
   }
 }; 

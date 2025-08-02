@@ -45,6 +45,21 @@ For external API access:
     country: String // Default: 'USA'
   },
   orderNumber: String, // Auto-generated: 'TC-{timestamp}-{random}'
+  payment: {
+    method: String, // 'simulated', 'stripe', 'paypal', 'credit_card'
+    transactionId: String,
+    paymentIntentId: String,
+    paid: Boolean,
+    paidAt: Date
+  },
+  refund: {
+    status: String, // 'none', 'pending', 'processed', 'failed'
+    amount: Number,
+    refundId: String,
+    reason: String,
+    processedAt: Date,
+    failureReason: String
+  },
   createdAt: Date,
   updatedAt: Date
 }
@@ -75,6 +90,21 @@ For external API access:
   days: Number,
   totalPrice: Number,
   status: String, // 'confirmed', 'cancelled'
+  payment: {
+    method: String, // 'simulated', 'stripe', 'paypal', 'credit_card'
+    transactionId: String,
+    paymentIntentId: String,
+    paid: Boolean,
+    paidAt: Date
+  },
+  refund: {
+    status: String, // 'none', 'pending', 'processed', 'failed'
+    amount: Number,
+    refundId: String,
+    reason: String,
+    processedAt: Date,
+    failureReason: String
+  },
   createdAt: Date
 }
 ```
@@ -289,6 +319,107 @@ Retrieves details for a specific order.
 - `404 Not Found`: Order not found
 - `403 Forbidden`: Permission denied (user doesn't own order)
 - `401 Unauthorized`: User not authenticated
+
+### Cancel Order
+Cancels a product order and restores stock quantities. Only orders with 'pending' or 'processing' status can be cancelled.
+
+**Endpoint:** `PATCH /api/orders/:id/cancel`
+
+**Authentication:** Required (Session-based or Token-based)
+
+**Request Body (Session-based authentication):**
+```json
+{}
+```
+
+**Request Body (Token-based authentication):**
+```json
+{
+  "userId": "64f8a123456789abcdef0120"
+}
+```
+
+**Headers (Token-based authentication):**
+```
+Authorization: Bearer YOUR_API_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Success Response:** `200 OK`
+```json
+{
+  "success": true,
+  "data": {
+    "order": {
+      "_id": "64f8a123456789abcdef0125",
+      "user": {
+        "_id": "64f8a123456789abcdef0120",
+        "username": "johndoe",
+        "email": "john@example.com"
+      },
+      "items": [
+        {
+          "_id": "64f8a123456789abcdef0126",
+          "product": {
+            "_id": "64f8a123456789abcdef0123",
+            "name": "Adventure Coffee Mug",
+            "price": 15.99,
+            "image": "https://example.com/mug.jpg"
+          },
+          "quantity": 2,
+          "price": 15.99
+        }
+      ],
+      "totalAmount": 31.98,
+      "status": "cancelled",
+      "shippingAddress": {
+        "name": "John Doe",
+        "address": "123 Main St",
+        "city": "San Francisco",
+        "state": "CA",
+        "zipCode": "94102",
+        "country": "USA"
+      },
+      "payment": {
+        "method": "simulated",
+        "transactionId": "sim_1704067200000_abc123def",
+        "paymentIntentId": "pi_sim_1704067200000",
+        "paid": true,
+        "paidAt": "2024-01-01T00:00:00.000Z"
+      },
+      "refund": {
+        "status": "processed",
+        "amount": 31.98,
+        "refundId": "re_sim_1704067500000_xyz789abc",
+        "reason": "Order cancelled by user",
+        "processedAt": "2024-01-01T00:05:00.000Z"
+      },
+      "orderNumber": "TC-1704067200000-A1B2C",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:05:00.000Z"
+    },
+    "refund": {
+      "success": true,
+      "refund": {
+        "id": "re_sim_1704067500000_xyz789abc",
+        "amount": 31.98,
+        "currency": "USD",
+        "status": "processed",
+        "processedAt": "2024-01-01T00:05:00.000Z"
+      }
+    }
+  },
+  "message": "Order cancelled and refund of $31.98 processed successfully"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Order cannot be cancelled (shipped, delivered, or already cancelled)
+- `400 Bad Request`: Missing userId (when using token authentication)
+- `400 Bad Request`: Invalid userId format
+- `404 Not Found`: Order not found
+- `403 Forbidden`: Permission denied (user doesn't own order)
+- `401 Unauthorized`: User not authenticated or invalid token
 
 ## Products API
 
@@ -538,6 +669,304 @@ Retrieves details for a specific booking.
 - `403 Forbidden`: Permission denied
 - `401 Unauthorized`: Invalid authentication
 
+### Cancel Booking
+Cancels a campground booking. Only bookings with 'confirmed' status can be cancelled.
+
+**Endpoint:** `PATCH /api/bookings/:id/cancel`
+
+**Authentication:** Required (Session-based or Token-based)
+
+**Request Body (Session-based authentication):**
+```json
+{}
+```
+
+**Request Body (Token-based authentication):**
+```json
+{
+  "userId": "64f8a123456789abcdef0120"
+}
+```
+
+**Headers (Token-based authentication):**
+```
+Authorization: Bearer YOUR_API_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Success Response:** `200 OK`
+```json
+{
+  "success": true,
+  "data": {
+    "booking": {
+      "_id": "64f8a123456789abcdef0127",
+      "user": {
+        "_id": "64f8a123456789abcdef0120",
+        "username": "johndoe",
+        "email": "john@example.com"
+      },
+      "campground": {
+        "_id": "64f8a123456789abcdef0128",
+        "title": "Mountain View Campground",
+        "location": "Yosemite, CA",
+        "price": 45
+      },
+      "days": 3,
+      "totalPrice": 135,
+      "status": "cancelled",
+      "payment": {
+        "method": "simulated",
+        "transactionId": "sim_1704067200000_def456ghi",
+        "paymentIntentId": "pi_sim_1704067200000",
+        "paid": true,
+        "paidAt": "2024-01-01T00:00:00.000Z"
+      },
+      "refund": {
+        "status": "processed",
+        "amount": 135,
+        "refundId": "re_sim_1704067500000_mno789pqr",
+        "reason": "Booking cancelled by user",
+        "processedAt": "2024-01-01T00:05:00.000Z"
+      },
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    "refund": {
+      "success": true,
+      "refund": {
+        "id": "re_sim_1704067500000_mno789pqr",
+        "amount": 135,
+        "currency": "USD",
+        "status": "processed",
+        "processedAt": "2024-01-01T00:05:00.000Z"
+      }
+    }
+  },
+  "message": "Booking cancelled and refund of $135.00 processed successfully"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Booking cannot be cancelled (already cancelled)
+- `400 Bad Request`: Missing userId (when using token authentication)
+- `400 Bad Request`: Invalid userId format
+- `404 Not Found`: Booking not found
+- `403 Forbidden`: Permission denied (user doesn't own booking)
+- `401 Unauthorized`: User not authenticated or invalid token
+
+## Refund Management API
+
+### Get Order Refund Policy
+Retrieves refund policy information and eligibility for a specific order.
+
+**Endpoint:** `GET /api/orders/:id/refund-policy`
+
+**Authentication:** Required (Session-based or Token-based)
+
+**Success Response:** `200 OK`
+```json
+{
+  "success": true,
+  "data": {
+    "policy": {
+      "type": "order",
+      "policy": [
+        { "condition": "Pending orders", "refund": "100%" },
+        { "condition": "Processing (within 24 hours)", "refund": "90%" },
+        { "condition": "Processing (24-72 hours)", "refund": "50%" },
+        { "condition": "Processing (over 72 hours)", "refund": "0%" },
+        { "condition": "Shipped or Delivered", "refund": "0%" }
+      ]
+    },
+    "eligibleRefundAmount": 31.98,
+    "isRefundAllowed": true,
+    "currentRefundStatus": "none"
+  }
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: Order not found
+- `403 Forbidden`: Permission denied (user doesn't own order)
+- `401 Unauthorized`: User not authenticated or invalid token
+
+### Get Booking Refund Policy
+Retrieves refund policy information and eligibility for a specific booking.
+
+**Endpoint:** `GET /api/bookings/:id/refund-policy`
+
+**Authentication:** Required (Session-based or Token-based)
+
+**Success Response:** `200 OK`
+```json
+{
+  "success": true,
+  "data": {
+    "policy": {
+      "type": "booking",
+      "policy": [
+        { "condition": "Within 24 hours", "refund": "100%" },
+        { "condition": "Within 7 days", "refund": "80%" },
+        { "condition": "Within 30 days", "refund": "50%" },
+        { "condition": "Over 30 days", "refund": "0%" }
+      ]
+    },
+    "eligibleRefundAmount": 135,
+    "isRefundAllowed": true,
+    "currentRefundStatus": "none"
+  }
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: Booking not found
+- `403 Forbidden`: Permission denied (user doesn't own booking)
+- `401 Unauthorized`: User not authenticated or invalid token
+
+### Process Order Refund
+Manually process a refund for an order (admin or special cases).
+
+**Endpoint:** `POST /api/orders/:id/process-refund`
+
+**Authentication:** Required (Session-based or Token-based)
+
+**Request Body (Session-based authentication):**
+```json
+{
+  "reason": "Customer complaint",
+  "amount": 15.99
+}
+```
+
+**Request Body (Token-based authentication):**
+```json
+{
+  "userId": "64f8a123456789abcdef0120",
+  "reason": "Customer complaint",
+  "amount": 15.99
+}
+```
+
+**Success Response:** `200 OK`
+```json
+{
+  "success": true,
+  "data": {
+    "order": {
+      "_id": "64f8a123456789abcdef0125",
+      "refund": {
+        "status": "processed",
+        "amount": 15.99,
+        "refundId": "re_sim_1704067500000_xyz789abc",
+        "reason": "Customer complaint",
+        "processedAt": "2024-01-01T00:05:00.000Z"
+      }
+    },
+    "refund": {
+      "id": "re_sim_1704067500000_xyz789abc",
+      "amount": 15.99,
+      "currency": "USD",
+      "status": "processed",
+      "processedAt": "2024-01-01T00:05:00.000Z"
+    }
+  },
+  "message": "Refund of $15.99 processed successfully"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid refund amount or already refunded
+- `404 Not Found`: Order not found
+- `403 Forbidden`: Permission denied
+- `401 Unauthorized`: User not authenticated or invalid token
+
+### Process Booking Refund
+Manually process a refund for a booking (admin or special cases).
+
+**Endpoint:** `POST /api/bookings/:id/process-refund`
+
+**Authentication:** Required (Session-based or Token-based)
+
+**Request Body (Session-based authentication):**
+```json
+{
+  "reason": "Emergency cancellation",
+  "amount": 67.50
+}
+```
+
+**Request Body (Token-based authentication):**
+```json
+{
+  "userId": "64f8a123456789abcdef0120",
+  "reason": "Emergency cancellation",
+  "amount": 67.50
+}
+```
+
+**Success Response:** `200 OK`
+```json
+{
+  "success": true,
+  "data": {
+    "booking": {
+      "_id": "64f8a123456789abcdef0127",
+      "refund": {
+        "status": "processed",
+        "amount": 67.50,
+        "refundId": "re_sim_1704067500000_mno789pqr",
+        "reason": "Emergency cancellation",
+        "processedAt": "2024-01-01T00:05:00.000Z"
+      }
+    },
+    "refund": {
+      "id": "re_sim_1704067500000_mno789pqr",
+      "amount": 67.50,
+      "currency": "USD",
+      "status": "processed",
+      "processedAt": "2024-01-01T00:05:00.000Z"
+    }
+  },
+  "message": "Refund of $67.50 processed successfully"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid refund amount or already refunded
+- `404 Not Found`: Booking not found
+- `403 Forbidden`: Permission denied
+- `401 Unauthorized`: User not authenticated or invalid token
+
+## Refund Policies
+
+### Order Refund Policy
+Refund eligibility for product orders based on order status and time elapsed:
+
+| Order Status | Time Elapsed | Refund Amount |
+|-------------|--------------|---------------|
+| Pending | Any time | 100% |
+| Processing | 0-24 hours | 90% |
+| Processing | 24-72 hours | 50% |
+| Processing | Over 72 hours | 0% |
+| Shipped | Any time | 0% |
+| Delivered | Any time | 0% |
+
+### Booking Refund Policy
+Refund eligibility for campground bookings based on time between booking creation and cancellation:
+
+| Time Elapsed | Refund Amount |
+|-------------|---------------|
+| Within 24 hours | 100% |
+| Within 7 days | 80% |
+| Within 30 days | 50% |
+| Over 30 days | 0% |
+
+### Automatic Refund Processing
+- **Refunds are automatically processed** when orders or bookings are cancelled
+- **Refund amount is calculated** based on the policies above
+- **Simulated payment system** processes refunds instantly for demonstration
+- **Real payment processors** (Stripe, PayPal) can be integrated in production
+
 ## Error Handling
 
 ### Standard Error Response Format
@@ -675,6 +1104,174 @@ const getBookingsForUser = async (userId) => {
 };
 ```
 
+### JavaScript/Node.js - Cancel Order (Session-based)
+```javascript
+const axios = require('axios');
+
+const cancelOrder = async (orderId) => {
+  try {
+    const response = await axios.patch(`http://localhost:5000/api/orders/${orderId}/cancel`, {}, {
+      withCredentials: true, // Include session cookies
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling order:', error.response?.data || error.message);
+    throw error;
+  }
+};
+```
+
+### JavaScript/Node.js - Cancel Order (Token-based)
+```javascript
+const axios = require('axios');
+
+const cancelOrderWithToken = async (orderId, userId) => {
+  try {
+    const response = await axios.patch(`http://localhost:5000/api/orders/${orderId}/cancel`, {
+      userId
+    }, {
+      headers: {
+        'Authorization': `Bearer ${process.env.API_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling order:', error.response?.data || error.message);
+    throw error;
+  }
+};
+```
+
+### JavaScript/Node.js - Cancel Booking (Session-based)
+```javascript
+const axios = require('axios');
+
+const cancelBooking = async (bookingId) => {
+  try {
+    const response = await axios.patch(`http://localhost:5000/api/bookings/${bookingId}/cancel`, {}, {
+      withCredentials: true, // Include session cookies
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling booking:', error.response?.data || error.message);
+    throw error;
+  }
+};
+```
+
+### JavaScript/Node.js - Cancel Booking (Token-based)
+```javascript
+const axios = require('axios');
+
+const cancelBookingWithToken = async (bookingId, userId) => {
+  try {
+    const response = await axios.patch(`http://localhost:5000/api/bookings/${bookingId}/cancel`, {
+      userId
+    }, {
+      headers: {
+        'Authorization': `Bearer ${process.env.API_ACCESS_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error cancelling booking:', error.response?.data || error.message);
+    throw error;
+  }
+};
+```
+
+### JavaScript/Node.js - Get Refund Policy
+```javascript
+const axios = require('axios');
+
+const getOrderRefundPolicy = async (orderId) => {
+  try {
+    const response = await axios.get(`http://localhost:5000/api/orders/${orderId}/refund-policy`, {
+      withCredentials: true, // Include session cookies
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching refund policy:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+const getBookingRefundPolicy = async (bookingId) => {
+  try {
+    const response = await axios.get(`http://localhost:5000/api/bookings/${bookingId}/refund-policy`, {
+      withCredentials: true, // Include session cookies
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching refund policy:', error.response?.data || error.message);
+    throw error;
+  }
+};
+```
+
+### JavaScript/Node.js - Process Manual Refund
+```javascript
+const axios = require('axios');
+
+const processOrderRefund = async (orderId, reason, amount) => {
+  try {
+    const response = await axios.post(`http://localhost:5000/api/orders/${orderId}/process-refund`, {
+      reason,
+      amount
+    }, {
+      withCredentials: true, // Include session cookies
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error processing refund:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
+const processBookingRefund = async (bookingId, reason, amount) => {
+  try {
+    const response = await axios.post(`http://localhost:5000/api/bookings/${bookingId}/process-refund`, {
+      reason,
+      amount
+    }, {
+      withCredentials: true, // Include session cookies
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error processing refund:', error.response?.data || error.message);
+    throw error;
+  }
+};
+```
+
 ### Python - Create Order
 ```python
 import requests
@@ -764,6 +1361,79 @@ curl -X GET "http://localhost:5000/api/bookings/user/64f8a123456789abcdef0120" \
   -H "Content-Type: application/json"
 ```
 
+#### Cancel Order (Session-based)
+```bash
+curl -X PATCH "http://localhost:5000/api/orders/64f8a123456789abcdef0125/cancel" \
+  -H "Content-Type: application/json" \
+  -b "session_cookie_name=session_value" \
+  -d '{}'
+```
+
+#### Cancel Order (Token-based)
+```bash
+curl -X PATCH "http://localhost:5000/api/orders/64f8a123456789abcdef0125/cancel" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN" \
+  -d '{
+    "userId": "64f8a123456789abcdef0120"
+  }'
+```
+
+#### Cancel Booking (Session-based)
+```bash
+curl -X PATCH "http://localhost:5000/api/bookings/64f8a123456789abcdef0127/cancel" \
+  -H "Content-Type: application/json" \
+  -b "session_cookie_name=session_value" \
+  -d '{}'
+```
+
+#### Cancel Booking (Token-based)
+```bash
+curl -X PATCH "http://localhost:5000/api/bookings/64f8a123456789abcdef0127/cancel" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN" \
+  -d '{
+    "userId": "64f8a123456789abcdef0120"
+  }'
+```
+
+#### Get Order Refund Policy
+```bash
+curl -X GET "http://localhost:5000/api/orders/64f8a123456789abcdef0125/refund-policy" \
+  -H "Content-Type: application/json" \
+  -b "session_cookie_name=session_value"
+```
+
+#### Get Booking Refund Policy (Token-based)
+```bash
+curl -X GET "http://localhost:5000/api/bookings/64f8a123456789abcdef0127/refund-policy" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN"
+```
+
+#### Process Order Refund
+```bash
+curl -X POST "http://localhost:5000/api/orders/64f8a123456789abcdef0125/process-refund" \
+  -H "Content-Type: application/json" \
+  -b "session_cookie_name=session_value" \
+  -d '{
+    "reason": "Customer complaint",
+    "amount": 15.99
+  }'
+```
+
+#### Process Booking Refund (Token-based)
+```bash
+curl -X POST "http://localhost:5000/api/bookings/64f8a123456789abcdef0127/process-refund" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN" \
+  -d '{
+    "userId": "64f8a123456789abcdef0120",
+    "reason": "Emergency cancellation",
+    "amount": 67.50
+  }'
+```
+
 ## Environment Configuration
 
 ### Required Environment Variables
@@ -813,11 +1483,37 @@ CLOUDINARY_SECRET=your-api-secret
 - Stock quantities are automatically decremented when orders are placed
 - Out-of-stock products cannot be ordered
 - Insufficient stock prevents order completion
+- **Stock is restored when orders are cancelled**
 
 ### Stock Validation
 - Real-time stock checking during order creation
 - Prevents overselling with concurrent orders
 - Returns specific error messages for stock issues
+
+## Payment & Refund System
+
+### Simulated Payment Processing
+- **Automatic payment simulation** when orders and bookings are created
+- **No external payment processor required** for development and testing
+- **Production-ready architecture** for integrating real payment processors
+
+### Payment Tracking
+- **Transaction IDs** for all payments
+- **Payment status tracking** (paid/unpaid)
+- **Payment method recording** (simulated, stripe, paypal, credit_card)
+- **Payment timestamps** for audit trails
+
+### Refund Processing
+- **Automatic refunds** triggered during cancellation
+- **Smart refund calculation** based on timing policies
+- **Refund status tracking** (none, pending, processed, failed)
+- **Refund audit trail** with timestamps and reasons
+
+### Refund Business Rules
+- **Orders**: Refund percentage decreases over time and order progress
+- **Bookings**: Refund percentage decreases based on cancellation timing
+- **Failed refunds**: Captured with failure reasons for troubleshooting
+- **Duplicate refund prevention**: System prevents double refunds
 
 ## Deployment Notes
 
@@ -837,4 +1533,4 @@ CLOUDINARY_SECRET=your-api-secret
 ---
 
 *Last updated: January 2024*
-*API Version: 1.0.0* 
+*API Version: 1.1.0* (includes refund system) 

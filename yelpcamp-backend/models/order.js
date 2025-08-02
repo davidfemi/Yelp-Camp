@@ -64,6 +64,35 @@ const orderSchema = new mongoose.Schema({
     orderNumber: {
         type: String,
         unique: true
+    },
+    payment: {
+        method: {
+            type: String,
+            enum: ['simulated', 'stripe', 'paypal', 'credit_card'],
+            default: 'simulated'
+        },
+        transactionId: String,
+        paymentIntentId: String, // Stripe payment intent ID
+        paid: {
+            type: Boolean,
+            default: false
+        },
+        paidAt: Date
+    },
+    refund: {
+        status: {
+            type: String,
+            enum: ['none', 'pending', 'processed', 'failed'],
+            default: 'none'
+        },
+        amount: {
+            type: Number,
+            default: 0
+        },
+        refundId: String, // Stripe refund ID
+        reason: String,
+        processedAt: Date,
+        failureReason: String
     }
 }, {
     timestamps: true
