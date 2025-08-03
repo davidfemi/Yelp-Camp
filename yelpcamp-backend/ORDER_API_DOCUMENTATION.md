@@ -345,7 +345,17 @@ Retrieves details for a specific order.
 
 **Endpoint:** `GET /api/orders/:id`
 
-**Authentication:** Required (Session-based)
+**Authentication:** Session-based or API Access Token
+
+**Authorization Rules:**
+- With API token: Can access any order (admin functionality)
+- With session: Can only access own orders
+
+**Headers (Token-based authentication):**
+```
+Authorization: Bearer YOUR_API_ACCESS_TOKEN
+Content-Type: application/json
+```
 
 **Success Response:** `200 OK`
 ```json
@@ -496,6 +506,52 @@ Content-Type: application/json
 - `403 Forbidden`: Permission denied (user doesn't own order)
 - `401 Unauthorized`: User not authenticated or invalid token
 
+## User Profile API
+
+### Get User Profile
+Retrieves user profile information including basic details and statistics.
+
+**Endpoint:** `GET /api/users/profile`
+
+**Authentication:** Session-based or API Access Token
+
+**Query Parameters (Token-based authentication):**
+- `userId` - The ID of the user whose profile to retrieve
+
+**Headers (Token-based authentication):**
+```
+Authorization: Bearer YOUR_API_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Authorization Rules:**
+- With API token: Can access any user's profile (admin functionality)
+- With session: Returns authenticated user's profile
+
+**Success Response:** `200 OK`
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "6856cbf5ce979a217727576a",
+      "username": "Dale Cooper",
+      "email": "user@example.com",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "stats": {
+        "campgrounds": 5,
+        "reviews": 12
+      }
+    }
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Missing userId (when using token authentication)
+- `404 Not Found`: User not found
+- `401 Unauthorized`: User not authenticated or invalid token
+
 ## Products API
 
 ### Get All Products
@@ -566,13 +622,27 @@ Creates a new campground booking.
 
 **Endpoint:** `POST /api/campgrounds/:id/bookings`
 
-**Authentication:** Required (Session-based)
+**Authentication:** Session-based or API Access Token
 
-**Request Body:**
+**Request Body (Session-based authentication):**
 ```json
 {
   "days": 3
 }
+```
+
+**Request Body (Token-based authentication):**
+```json
+{
+  "days": 3,
+  "userId": "64f8a123456789abcdef0120"
+}
+```
+
+**Headers (Token-based authentication):**
+```
+Authorization: Bearer YOUR_API_ACCESS_TOKEN
+Content-Type: application/json
 ```
 
 **Success Response:** `201 Created`
@@ -605,6 +675,7 @@ Creates a new campground booking.
 
 **Error Responses:**
 - `400 Bad Request`: Invalid days value (must be >= 1)
+- `400 Bad Request`: Missing userId (when using token authentication)
 - `404 Not Found`: Campground not found
 - `401 Unauthorized`: User not authenticated
 
@@ -1443,6 +1514,31 @@ curl -X GET "http://localhost:5000/api/bookings/user/64f8a123456789abcdef0120" \
   -H "Content-Type: application/json"
 ```
 
+#### Get User Profile with API Token
+```bash
+curl -X GET "http://localhost:5000/api/users/profile?userId=64f8a123456789abcdef0120" \
+  -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+#### Get Order Details with API Token
+```bash
+curl -X GET "http://localhost:5000/api/orders/64f8a123456789abcdef0125" \
+  -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+#### Create Booking with API Token
+```bash
+curl -X POST "http://localhost:5000/api/campgrounds/64f8a123456789abcdef0128/bookings" \
+  -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "days": 3,
+    "userId": "64f8a123456789abcdef0120"
+  }'
+```
+
 #### Cancel Order (Session-based)
 ```bash
 curl -X PATCH "http://localhost:5000/api/orders/64f8a123456789abcdef0125/cancel" \
@@ -1615,4 +1711,4 @@ CLOUDINARY_SECRET=your-api-secret
 ---
 
 *Last updated: January 2024*
-*API Version: 1.2.0* (includes refund system and user-specific order/booking endpoints) 
+*API Version: 1.3.0* (includes comprehensive token authentication support for all major endpoints) 

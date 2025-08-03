@@ -249,19 +249,51 @@ app.get('/api/auth/me', (req, res) => {
 });
 
 // ADD: User Profile Route
-app.get('/api/users/profile', isLoggedIn, catchAsync(async (req, res) => {
+app.get('/api/users/profile', authOrToken, catchAsync(async (req, res) => {
+    let targetUserId;
+    
+    if (req.isApiToken) {
+        // Token authentication - get user ID from query parameter
+        const { userId } = req.query;
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                error: 'userId query parameter is required when using API token authentication'
+            });
+        }
+        targetUserId = userId;
+    } else {
+        // Session authentication - use logged-in user
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'User not authenticated'
+            });
+        }
+        targetUserId = req.user._id;
+    }
+
+    // Find the target user
+    const user = await User.findById(targetUserId);
+    if (!user) {
+        return res.status(404).json({
+            success: false,
+            error: 'User not found'
+        });
+    }
+
     // Basic user data
     const userData = {
-        id: req.user._id,
-        username: req.user.username,
-        email: req.user.email,
-        createdAt: req.user.createdAt,
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        createdAt: user.createdAt,
     };
 
     // Aggregate stats
     const [campgroundCount, reviewCount] = await Promise.all([
-        Campground.countDocuments({ author: req.user._id }),
-        Review.countDocuments({ author: req.user._id })
+        Campground.countDocuments({ author: user._id }),
+        Review.countDocuments({ author: user._id })
     ]);
 
     res.json({
@@ -489,15 +521,38 @@ app.delete('/api/campgrounds/:id/reviews/:reviewId', isLoggedIn, isReviewAuthor,
 }));
 
 // Booking Routes
-app.post('/api/campgrounds/:id/bookings', isLoggedIn, catchAsync(async (req, res) => {
+app.post('/api/campgrounds/:id/bookings', authOrToken, catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const { days, userId } = req.body;
+    
+    // Determine user ID based on authentication method
+    let bookingUserId;
+    if (req.isApiToken) {
+        // Token authentication - require userId in body
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                error: 'userId is required when using API token authentication'
+            });
+        }
+        bookingUserId = userId;
+    } else {
+        // Session authentication - use logged-in user
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                error: 'User not authenticated'
+            });
+        }
+        bookingUserId = req.user._id;
+    }
+
     console.log('Booking request received:', {
         params: req.params,
         body: req.body,
-        user: req.user ? { id: req.user._id, username: req.user.username } : 'No user'
+        bookingUserId: bookingUserId,
+        authMethod: req.isApiToken ? 'token' : 'session'
     });
-
-    const { id } = req.params;
-    const { days } = req.body;
 
     if (!days || days < 1) {
         console.log('Invalid days value:', days);
@@ -521,14 +576,14 @@ app.post('/api/campgrounds/:id/bookings', isLoggedIn, catchAsync(async (req, res
     const totalPrice = campground.price * days;
 
     console.log('Creating booking with data:', {
-        user: req.user._id,
+        user: bookingUserId,
         campground: id,
         days: days,
         totalPrice: totalPrice
     });
 
     const booking = new Booking({
-        user: req.user._id,
+        user: bookingUserId,
         campground: id,
         days: days,
         totalPrice: totalPrice,
@@ -909,7 +964,7 @@ app.get('/api/orders/user/:userId', authOrToken, catchAsync(async (req, res) => 
     });
 }));
 
-app.get('/api/orders/:id', isLoggedIn, catchAsync(async (req, res) => {
+app.get('/api/orders/:id', authOrToken, catchAsync(async (req, res) => {
     const order = await Order.findById(req.params.id)
         .populate('items.product', 'name price image')
         .populate('user', 'username email');
@@ -921,13 +976,17 @@ app.get('/api/orders/:id', isLoggedIn, catchAsync(async (req, res) => {
         });
     }
     
-    // Check if user owns this order
-    if (!order.user._id.equals(req.user._id)) {
-        return res.status(403).json({
-            success: false,
-            error: 'Permission denied'
-        });
+    // Check authorization based on authentication method
+    if (!req.isApiToken) {
+        // Session authentication - user can only access their own orders
+        if (!req.user || !order.user._id.equals(req.user._id)) {
+            return res.status(403).json({
+                success: false,
+                error: 'Permission denied'
+            });
+        }
     }
+    // Token authentication allows access to any order (admin functionality)
     
     res.json({
         success: true,
