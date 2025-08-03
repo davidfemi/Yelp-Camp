@@ -155,9 +155,11 @@ const workspaceTokenValid = (req) => {
 const authOrToken = (req, res, next) => {
     if (workspaceTokenValid(req)) {
         req.workspaceAccess = true;
+        req.isApiToken = true;
         return next();
     }
     if (req.isAuthenticated && req.isAuthenticated()) {
+        req.isApiToken = false;
         return next();
     }
     return res.status(401).json({ success: false, error: 'Authentication required' });
@@ -587,7 +589,7 @@ app.get('/api/bookings', isLoggedIn, catchAsync(async (req, res) => {
     res.json({ success: true, data: { bookings } });
 }));
 
-// ADD: fetch bookings for specific user (token or session)
+// Bookings for specific user endpoint is implemented below
 app.get('/api/bookings/user/:userId', authOrToken, catchAsync(async (req, res) => {
     const { userId } = req.params;
     const mongoose = require('mongoose');
@@ -877,6 +879,27 @@ app.post('/api/orders', authOrToken, catchAsync(async (req, res) => {
 
 app.get('/api/orders', isLoggedIn, catchAsync(async (req, res) => {
     const orders = await Order.find({ user: req.user._id })
+        .populate('items.product', 'name price image')
+        .sort({ createdAt: -1 });
+    
+    res.json({
+        success: true,
+        data: { orders }
+    });
+}));
+
+// API endpoint to get orders by user ID (supports token authentication)
+app.get('/api/orders/user/:userId', authOrToken, catchAsync(async (req, res) => {
+    const { userId } = req.params;
+    
+    // Check if the requester is authorized to view these orders
+    // If using session auth, must be the same user
+    // If using API token, allow access (admin functionality)
+    if (!req.isApiToken && (!req.user || req.user._id.toString() !== userId)) {
+        throw new ExpressError('Not authorized to view these orders', 403);
+    }
+    
+    const orders = await Order.find({ user: userId })
         .populate('items.product', 'name price image')
         .sort({ createdAt: -1 });
     

@@ -265,6 +265,81 @@ Retrieves all orders for the authenticated user.
 }
 ```
 
+### Get Orders by User ID (API Token)
+Retrieves all orders for a specific user using API token authentication.
+
+**Endpoint:** `GET /api/orders/user/:userId`
+
+**Authentication:** API Access Token or Session-based
+
+**Headers:**
+```
+Authorization: Bearer YOUR_API_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**URL Parameters:**
+- `userId` - The ID of the user whose orders to retrieve
+
+**Authorization Rules:**
+- With API token: Can access any user's orders (admin functionality)
+- With session: Can only access own orders (must match authenticated user ID)
+
+**Success Response:** `200 OK`
+```json
+{
+  "success": true,
+  "data": {
+    "orders": [
+      {
+        "_id": "64f8a123456789abcdef0125",
+        "user": "6856cbf5ce979a217727576a",
+        "items": [
+          {
+            "_id": "64f8a123456789abcdef0126",
+            "product": {
+              "_id": "64f8a123456789abcdef0123",
+              "name": "Adventure Coffee Mug",
+              "price": 15.99,
+              "image": "https://example.com/mug.jpg"
+            },
+            "quantity": 2,
+            "price": 15.99
+          }
+        ],
+        "totalAmount": 31.98,
+        "status": "pending",
+        "orderNumber": "TC-1704067200000-A1B2C",
+        "shippingAddress": {
+          "name": "John Doe",
+          "address": "123 Main St",
+          "city": "New York",
+          "state": "NY",
+          "zipCode": "10001",
+          "country": "USA"
+        },
+        "payment": {
+          "method": "simulated",
+          "transactionId": "sim_1704067200000_abc123",
+          "paid": true,
+          "paidAt": "2024-01-01T00:00:00.000Z"
+        },
+        "refund": {
+          "status": "none",
+          "amount": 0
+        },
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "updatedAt": "2024-01-01T00:00:00.000Z"
+      }
+    ]
+  }
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized` - Missing or invalid authentication
+- `403 Forbidden` - Not authorized to view these orders (session auth only)
+
 ### Get Order Details
 Retrieves details for a specific order.
 
@@ -1354,7 +1429,14 @@ curl -X POST "http://localhost:5000/api/orders" \
   }'
 ```
 
-#### Get Bookings with API Token
+#### Get Orders by User ID with API Token
+```bash
+curl -X GET "http://localhost:5000/api/orders/user/64f8a123456789abcdef0120" \
+  -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+#### Get Bookings by User ID with API Token
 ```bash
 curl -X GET "http://localhost:5000/api/bookings/user/64f8a123456789abcdef0120" \
   -H "Authorization: Bearer YOUR_API_ACCESS_TOKEN" \
@@ -1533,4 +1615,4 @@ CLOUDINARY_SECRET=your-api-secret
 ---
 
 *Last updated: January 2024*
-*API Version: 1.1.0* (includes refund system) 
+*API Version: 1.2.0* (includes refund system and user-specific order/booking endpoints) 
