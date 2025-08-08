@@ -1,6 +1,6 @@
 # The Campgrounds 🏕️
 
-A full-stack web application for discovering and reviewing campgrounds around the world. Built with modern technologies and featuring user authentication, image uploads, interactive maps, and AI-enhanced descriptions.
+A full-stack application ecosystem for discovering and reviewing campgrounds around the world. Built with modern technologies and featuring user authentication, image uploads, interactive maps, and AI-enhanced descriptions. Available as both a web application and mobile app.
 
 ![The Campgrounds](yelpcamp-frontend/Yelpcamp.png)
 
@@ -8,10 +8,11 @@ A full-stack web application for discovering and reviewing campgrounds around th
 
 **🚀 [Visit The Campgrounds](https://thecampground.vercel.app)**
 
-- **Frontend**: https://thecampground.vercel.app
+- **Web App**: https://thecampground.vercel.app
+- **Mobile App**: React Native (iOS/Android)
 - **Backend API**: https://yelpcamp-vvv2.onrender.com
 
-*Try creating an account and exploring campgrounds from around the world!*
+*Try creating an account and exploring campgrounds from around the world on web or mobile!*
 
 ## ✨ Features
 
@@ -31,16 +32,28 @@ A full-stack web application for discovering and reviewing campgrounds around th
 - Leave reviews and ratings
 - Manage personal campground listings
 - Secure user profiles and sessions
+- Cross-platform experience (Web & Mobile)
+- Native mobile features (camera, location, push notifications)
 
 ## 🛠️ Tech Stack
 
-### Frontend
+### Frontend (Web)
 - **React 19** with TypeScript
 - **React Router** for navigation
 - **Bootstrap 5** & React Bootstrap for UI
 - **Mapbox GL JS** for interactive maps
 - **Axios** for API communication
 - **React Toastify** for notifications
+
+### Mobile App
+- **React Native** with TypeScript
+- **Expo** development platform
+- **React Navigation** for navigation
+- **React Native Maps** for interactive maps
+- **Expo Camera** for image capture
+- **Expo Location** for GPS functionality
+- **Intercom** for customer support
+- **Axios** for API communication
 
 ### Backend
 - **Node.js** & **Express.js**
@@ -82,6 +95,12 @@ A full-stack web application for discovering and reviewing campgrounds around th
 3. **Install frontend dependencies**
    ```bash
    cd ../yelpcamp-frontend
+   npm install
+   ```
+
+4. **Install mobile app dependencies**
+   ```bash
+   cd ../yelpcamp-mobile
    npm install
    ```
 
@@ -140,6 +159,13 @@ NODE_ENV=development
    ```
    App runs on `http://localhost:3000`
 
+3. **Start the mobile app (optional)**
+   ```bash
+   cd yelpcamp-mobile
+   npm start
+   ```
+   Follow Expo CLI instructions to run on iOS/Android simulator or physical device
+
 ## 📚 API Documentation
 
 ### Base URLs
@@ -189,7 +215,7 @@ the-campgrounds/
 │   ├── middleware.js           # Custom middleware
 │   ├── schemas.js              # Joi validation schemas
 │   └── server.js               # Main server file
-├── yelpcamp-frontend/          # React TypeScript app
+├── yelpcamp-frontend/          # React TypeScript web app
 │   ├── src/
 │   │   ├── components/         # React components
 │   │   ├── pages/              # Page components
@@ -197,6 +223,18 @@ the-campgrounds/
 │   │   ├── types/              # TypeScript types
 │   │   └── utils/              # Utility functions
 │   └── public/                 # Static assets
+├── yelpcamp-mobile/            # React Native mobile app
+│   ├── src/
+│   │   ├── components/         # React Native components
+│   │   ├── screens/            # Screen components
+│   │   ├── navigation/         # Navigation configuration
+│   │   ├── contexts/           # React contexts
+│   │   ├── services/           # API services
+│   │   ├── types/              # TypeScript types
+│   │   └── utils/              # Utility functions
+│   ├── android/                # Android native code
+│   ├── ios/                    # iOS native code
+│   └── assets/                 # Mobile assets
 └── README.md
 ```
 
@@ -257,6 +295,12 @@ REACT_APP_API_URL=https://yelpcamp-vvv2.onrender.com
 - `npm start` - Start development server
 - `npm run build` - Build for production
 - `npm test` - Run tests
+
+### Mobile App Scripts
+- `npm start` - Start Expo development server
+- `npm run android` - Run on Android
+- `npm run ios` - Run on iOS
+- `npm run web` - Run on web browser
 
 ## 🤝 Contributing
 
