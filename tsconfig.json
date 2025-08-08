@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./yelpcamp-mobile" },
+    { "path": "./yelpcamp-frontend" }
+  ],
+  "exclude": [
+    "**/node_modules/**",
+    "**/.expo/**",
+    "**/build/**",
+    "**/dist/**"
+  ]
+}

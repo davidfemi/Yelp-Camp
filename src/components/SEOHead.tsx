@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSEO } from '../hooks/useSEO';
 
 interface SEOHeadProps {
@@ -14,7 +13,7 @@ interface SEOHeadProps {
   reviewCount?: number;
 }
 
-const SEOHead: React.FC<SEOHeadProps> = ({
+const SEOHead: (props: SEOHeadProps) => null = ({
   title = "The Campgrounds - Discover Amazing Campgrounds",
   description = "Discover and share amazing campgrounds around the world. Find your perfect outdoor adventure with detailed reviews, photos, and maps.",
   keywords = "camping, campgrounds, outdoor, adventure, nature, travel, reviews",
@@ -78,4 +77,4 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   return null;
 };
 
-export default SEOHead; 
+export default SEOHead;
