@@ -1,0 +1,9 @@
+node_modules/
+.expo/
+build/
+ios/
+android/
+*.spec.ts
+*.test.ts
+coverage/
+dist/

@@ -1,0 +1,85 @@
+{
+  "expo": {
+    "name": "CampgroundsMobile",
+    "slug": "campgrounds-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "scheme": "campgrounds",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyBQs0jsW14VYtMjYVIyevdoP3jdxHYpshA"
+      },
+      "bundleIdentifier": "com.campgrounds.mobile",
+      "associatedDomains": [
+        "applinks:thecampgrounds.com",
+        "applinks:www.thecampgrounds.com"
+      ]
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBQs0jsW14VYtMjYVIyevdoP3jdxHYpshA"
+        }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE"
+      ],
+      "package": "com.campgrounds.mobile",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "thecampgrounds.com"
+            },
+            {
+              "scheme": "https",
+              "host": "www.thecampgrounds.com"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "This app uses location to show nearby campgrounds."
+        }
+      ],
+      [
+        "@intercom/intercom-react-native",
+        {
+          "appId": "hqd6b4qh",
+          "androidApiKey": "android_sdk-5eba874a71a9a3a26ccf4cf2f0cf71a91a1ac581",
+          "iosApiKey": "ios_sdk-d5d209d7d2a2c501dc9c9e5042f47f9832088f76"
+        }
+      ]
+    ]
+  }
+}
