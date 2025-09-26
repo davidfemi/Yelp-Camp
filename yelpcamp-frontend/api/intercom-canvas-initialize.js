@@ -24,6 +24,7 @@ module.exports = async (req, res) => {
           },
           {
             type: 'button',
+            id: 'view_campgrounds_btn',
             label: 'View Campgrounds',
             action: {
               type: 'sheet',
