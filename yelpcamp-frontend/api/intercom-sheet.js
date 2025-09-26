@@ -35,9 +35,6 @@ module.exports = async (req, res) => {
     }
     .grid {
       padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
     }
     .card { border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; background:#fff; display: flex; flex-direction: row; max-height: 140px; }
     .img { width: 140px; height: 140px; object-fit: cover; background:#f3f4f6; flex-shrink: 0; }
