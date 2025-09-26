@@ -4,6 +4,10 @@ module.exports = async (req, res) => {
     return;
   }
 
+  // Log the incoming request for debugging
+  console.log('Intercom request body:', JSON.stringify(req.body, null, 2));
+  console.log('Intercom request headers:', JSON.stringify(req.headers, null, 2));
+
   const defaultFrontend = process.env.FRONTEND_URL || '';
   const forwardedProto = req.headers['x-forwarded-proto'] || 'https';
   const forwardedHost = req.headers['x-forwarded-host'] || req.headers.host;
@@ -31,8 +35,14 @@ module.exports = async (req, res) => {
     }
   };
 
-  res.setHeader('Content-Type', 'application/json');
-  res.status(200).send(JSON.stringify(payload));
+  try {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.status(200).json(payload);
+  } catch (error) {
+    console.error('Error in initialize webhook:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
 
 
