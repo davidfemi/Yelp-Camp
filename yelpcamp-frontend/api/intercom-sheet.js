@@ -19,9 +19,10 @@ module.exports = async (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.intercomcdn.com/messenger-sheet-library.latest.js"></script>
   <style nonce="${nonce}">
-    html, body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#fff; overflow: visible; }
-    .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid #e5e7eb; }
-    .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:12px; padding:12px; }
+    html, body { margin: 0; padding: 0; height: 100vh; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#fff; overflow: hidden; }
+    .container { height: 100vh; display: flex; flex-direction: column; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid #e5e7eb; flex-shrink: 0; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:12px; padding:12px; overflow-y: auto; flex: 1; }
     .card { border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; background:#fff; }
     .img { width:100%; height:140px; object-fit:cover; background:#f3f4f6; }
     .content { padding:10px; }
@@ -36,11 +37,13 @@ module.exports = async (req, res) => {
   
 </head>
 <body>
-  <div class="topbar">
-    <div>Available Campgrounds</div>
-    <button class="close" id="close">Close</button>
+  <div class="container">
+    <div class="topbar">
+      <div>Available Campgrounds</div>
+      <button class="close" id="close">Close</button>
+    </div>
+    <div class="grid" id="grid"></div>
   </div>
-  <div class="grid" id="grid"></div>
 
   <script nonce="${nonce}">
     const FRONTEND_URL = ${JSON.stringify(frontendBase)};
