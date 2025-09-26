@@ -14,11 +14,17 @@ module.exports = async (req, res) => {
     canvas: {
       content: {
         components: [
-          { type: 'text', text: 'Browse available campgrounds.' },
+          {
+            type: 'text',
+            text: 'Browse our available campgrounds and find your perfect outdoor getaway!'
+          },
           {
             type: 'button',
-            label: 'Open campgrounds',
-            action: { type: 'sheet', url: sheetUrl }
+            label: 'View Campgrounds',
+            action: {
+              type: 'sheet',
+              url: sheetUrl
+            }
           }
         ]
       }
