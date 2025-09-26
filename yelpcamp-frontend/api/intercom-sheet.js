@@ -19,16 +19,16 @@ module.exports = async (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.intercomcdn.com/messenger-sheet-library.latest.js"></script>
   <style nonce="${nonce}">
-    html, body { margin: 0; padding: 0; height: 100vh; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#fff; overflow: hidden; }
-    .container { height: 100vh; display: flex; flex-direction: column; }
-    .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid #e5e7eb; flex-shrink: 0; }
-    .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:12px; padding:12px; overflow-y: auto; flex: 1; }
-    .card { border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; background:#fff; }
-    .img { width:100%; height:140px; object-fit:cover; background:#f3f4f6; }
-    .content { padding:10px; }
-    .title { font-weight:600; margin:0 0 6px; }
-    .desc { color:#6b7280; font-size:14px; margin:0 0 10px; }
-    .row { display:flex; gap:8px; }
+    html, body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#fff; }
+    body { overflow-y: auto; overflow-x: hidden; }
+    .topbar { position: sticky; top: 0; z-index: 10; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #e5e7eb; }
+    .grid { padding: 12px; display: flex; flex-direction: column; gap: 16px; }
+    .card { border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; background:#fff; display: flex; flex-direction: row; max-height: 140px; }
+    .img { width: 140px; height: 140px; object-fit: cover; background:#f3f4f6; flex-shrink: 0; }
+    .content { padding:10px; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; overflow: hidden; }
+    .title { font-weight:600; margin:0 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .desc { color:#6b7280; font-size:14px; margin:0 0 auto; }
+    .row { display:flex; gap:8px; margin-top: 8px; }
     .btn { display:inline-block; padding:8px 10px; border-radius:6px; text-decoration:none; font-weight:500; border:1px solid #d1d5db; color:#111827; background:#fff; }
     .btn.primary { background:#111827; color:#fff; border-color:#111827; }
     .close { border:1px solid #d1d5db; background:#fff; border-radius:6px; padding:6px 10px; cursor:pointer; }
@@ -37,13 +37,11 @@ module.exports = async (req, res) => {
   
 </head>
 <body>
-  <div class="container">
-    <div class="topbar">
-      <div>Available Campgrounds</div>
-      <button class="close" id="close">Close</button>
-    </div>
-    <div class="grid" id="grid"></div>
+  <div class="topbar">
+    <div>Available Campgrounds</div>
+    <button class="close" id="close">Close</button>
   </div>
+  <div class="grid" id="grid"></div>
 
   <script nonce="${nonce}">
     const FRONTEND_URL = ${JSON.stringify(frontendBase)};
