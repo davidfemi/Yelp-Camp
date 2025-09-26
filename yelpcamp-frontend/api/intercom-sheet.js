@@ -20,6 +20,7 @@ module.exports = async (req, res) => {
   <script src="https://js.intercomcdn.com/messenger-sheet-library.latest.js"></script>
   <style nonce="${nonce}">
     html, body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#fff; }
+    .container { padding-bottom: 24px; }
     .topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #e5e7eb; background:#fff; }
     .grid { padding: 12px; display: flex; flex-direction: column; gap: 16px; }
     .card { border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; background:#fff; display: flex; flex-direction: row; max-height: 140px; }
@@ -36,9 +37,11 @@ module.exports = async (req, res) => {
   
 </head>
 <body>
-  <div class="topbar">
-    <div>Available Campgrounds</div>
-    <button class="close" id="close">Close</button>
+  <div class="container">
+    <div class="topbar">
+      <div>Available Campgrounds</div>
+      <button class="close" id="close">Close</button>
+    </div>
   </div>
   <div class="grid" id="grid"></div>
 
