@@ -1,37 +1,60 @@
-# CampgroundsMobile iOS App
+# CampgroundsMobile - React Native App
+
+⚠️ **IMPORTANT**: This is an Expo Development Build project, NOT Expo Go compatible!
 
 ## Prerequisites
 
 - Node.js 18+ and npm
-- Xcode 14+ (for iOS development)
-- iOS Simulator or physical iOS device
-- Expo CLI (`npm install -g expo-cli`)
+- **For iOS**: Xcode 14+ and iOS Simulator or physical iOS device
+- **For Android**: Android Studio and Android emulator or physical Android device
+- Expo CLI (`npm install -g @expo/cli`)
 
-## Setup Instructions
+## Quick Setup (Recommended)
 
-1. **Extract the archive and install dependencies:**
-   ```bash
-   tar -xzf CampgroundsMobile-iOS-Source.tar.gz
-   cd CampgroundsMobile
-   npm install --legacy-peer-deps
-   ```
+Run the automated setup script:
+```bash
+chmod +x setup.sh
+./setup.sh
+```
 
-2. **Install Expo and required packages:**
-   ```bash
-   npm install expo --legacy-peer-deps
-   npm install @intercom/intercom-react-native --legacy-peer-deps
-   npm install @react-native-async-storage/async-storage --legacy-peer-deps
-   ```
+## Manual Setup Instructions
 
-3. **Generate native iOS project:**
-   ```bash
-   npx expo prebuild --clean
-   ```
+### 1. Clone and Install Dependencies
+```bash
+git clone <repository-url>
+cd yelpcamp-mobile
+npm install --legacy-peer-deps
+```
 
-4. **Run the iOS app:**
-   ```bash
-   npx expo run:ios
-   ```
+### 2. Generate Native Projects
+```bash
+npx expo prebuild --clean
+```
+
+### 3. Run the App
+
+**For iOS:**
+```bash
+npx expo run:ios
+```
+
+**For Android:**
+```bash
+npx expo run:android
+```
+
+**For physical device:**
+```bash
+# iOS
+npx expo run:ios --device
+
+# Android
+npx expo run:android --device
+```
+
+## Why Can't I Use Expo Go?
+
+This project uses native dependencies (Intercom, Google Maps) that require custom native code. You must build and install a development build on your device/simulator.
 
 ## API Configuration
 
@@ -108,10 +131,28 @@ CampgroundsMobile/
 
 ## Troubleshooting
 
+### "No development build (com.campgrounds.mobile) for this project is installed"
+
+This error means you're trying to use `expo start` without having the development build installed. You need to:
+
+1. **Build and install the development build first:**
+   ```bash
+   npx expo run:ios    # for iOS
+   npx expo run:android # for Android
+   ```
+
+2. **Then you can use the development server:**
+   ```bash
+   npx expo start --dev-client
+   ```
+
+### Other Common Issues
+
 1. **AsyncStorage Error**: Run `npx expo prebuild --clean` and rebuild
 2. **Intercom Error**: Ensure you've run prebuild after adding the plugin
 3. **Metro Cache Issues**: Run `npx expo start --clear`
-4. **Build Errors**: Delete `ios/` folder and run `npx expo prebuild --clean`
+4. **Build Errors**: Delete `ios/` and `android/` folders and run `npx expo prebuild --clean`
+5. **"Expo Go" doesn't work**: This project requires a development build, not Expo Go
 
 ## Testing on Physical Device
 
