@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
 
     async function loadCampgrounds() {
       const url = new URL(BACKEND_URL + '/api/campgrounds');
-      url.searchParams.set('limit', '12');
+      url.searchParams.set('limit', '50');
       const res = await fetch(url.toString(), { headers: { 'content-type': 'application/json' } });
       if (!res.ok) return [];
       const json = await res.json();
