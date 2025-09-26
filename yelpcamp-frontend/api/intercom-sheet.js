@@ -6,6 +6,9 @@ module.exports = async (req, res) => {
 
   const backendBase = process.env.BACKEND_URL || 'https://yelpcamp-vvv2.onrender.com';
   const frontendBase = process.env.FRONTEND_URL || 'https://thecampground.vercel.app';
+  
+  // Generate a nonce for inline styles and scripts
+  const nonce = Buffer.from(Math.random().toString()).toString('base64').substring(0, 16);
 
   const html = `
 <!DOCTYPE html>
@@ -15,7 +18,7 @@ module.exports = async (req, res) => {
   <title>The Campgrounds – Sheet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.intercomcdn.com/messenger-sheet-library.latest.js"></script>
-  <style>
+  <style nonce="${nonce}">
     body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#fff; }
     .topbar { display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid #e5e7eb; }
     .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:12px; padding:12px; }
@@ -30,7 +33,6 @@ module.exports = async (req, res) => {
     .close { border:1px solid #d1d5db; background:#fff; border-radius:6px; padding:6px 10px; cursor:pointer; }
   </style>
   <!-- Intentionally no X-Frame-Options and CSP without frame-ancestors per Intercom Sheets requirements -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https:; script-src 'self' https://js.intercomcdn.com/; connect-src 'self' https:">
   
 </head>
 <body>
@@ -40,7 +42,7 @@ module.exports = async (req, res) => {
   </div>
   <div class="grid" id="grid"></div>
 
-  <script>
+  <script nonce="${nonce}">
     const FRONTEND_URL = ${JSON.stringify(frontendBase)};
     const BACKEND_URL = ${JSON.stringify(backendBase)};
 
@@ -107,7 +109,11 @@ module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
   // Intentionally omit X-Frame-Options per Intercom Sheets requirements.
-  // CSP meta tag is included in the document; some hosts may also set headers.
+  // Set CSP header that allows inline styles with hash and Intercom's script domain
+  res.setHeader(
+    'Content-Security-Policy',
+    `default-src 'self' https:; img-src 'self' https: data:; style-src 'self' 'nonce-${nonce}' https:; script-src 'self' https://js.intercomcdn.com/ 'nonce-${nonce}'; connect-src 'self' https:; object-src 'none'; base-uri 'self';`
+  );
   res.status(200).send(html);
 };
 
