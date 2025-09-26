@@ -19,10 +19,10 @@ module.exports = async (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.intercomcdn.com/messenger-sheet-library.latest.js"></script>
   <style nonce="${nonce}">
-    html, body { margin: 0; padding: 0; height: 100vh; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#fff; overflow: hidden; }
-    .container { height: 100vh; display: flex; flex-direction: column; }
+    html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#fff; }
+    .container { height: 100%; display: flex; flex-direction: column; }
     .topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px; border-bottom: 1px solid #e5e7eb; flex-shrink: 0; background:#fff; }
-    .grid { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .grid { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 16px; }
     .card { border:1px solid #e5e7eb; border-radius:8px; overflow:hidden; background:#fff; display: flex; flex-direction: row; max-height: 140px; }
     .img { width: 140px; height: 140px; object-fit: cover; background:#f3f4f6; flex-shrink: 0; }
     .content { padding:10px; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; overflow: hidden; }
