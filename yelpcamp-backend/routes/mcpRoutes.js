@@ -552,8 +552,10 @@ router.get('/', authenticateMCP, (req, res) => {
 
 router.post('/', authenticateMCP, async (req, res) => {
   const method = req.body?.method;
+  console.log('[MCP-DEBUG] POST /mcp body:', JSON.stringify(req.body));
   try {
     if (method === 'tools/list') {
+      console.log('[MCP-DEBUG] Returning tools array, length:', MCP_TOOLS.length);
       return res.json({ tools: MCP_TOOLS, resources: [], prompts: [] });
     }
     if (method === 'initialize') {
@@ -569,12 +571,9 @@ router.post('/', authenticateMCP, async (req, res) => {
       const result = await executeTool(name, args || {}, req);
       return res.json(result);
     }
-    // Default: behave like initialize
-    return res.json({
-      protocolVersion: "2024-11-05",
-      serverInfo: { name: "campgrounds-booking-mcp", version: "1.0.0" },
-      capabilities: { tools: {}, resources: {} }
-    });
+    // Default: if no method or unrecognized, return tools list (most common discovery call)
+    console.log('[MCP-DEBUG] No method or unrecognized, returning tools list by default');
+    return res.json({ tools: MCP_TOOLS, resources: [], prompts: [] });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
