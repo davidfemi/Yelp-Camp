@@ -52,7 +52,7 @@ const MCP_TOOLS = [
   {
     name: "get_user_bookings",
     description: "Retrieve all bookings for a user by their user ID. Returns booking history with campground details, prices, dates, and statuses.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         userId: { type: "string", description: "MongoDB ObjectId of the user (24 character hex string)" }
@@ -63,7 +63,7 @@ const MCP_TOOLS = [
   {
     name: "get_booking_details",
     description: "Get detailed information about a specific booking including campground details, payment status, and refund information.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         bookingId: { type: "string", description: "The booking ID (MongoDB ObjectId)" }
@@ -74,7 +74,7 @@ const MCP_TOOLS = [
   {
     name: "check_campground_availability",
     description: "Check if a campground has available spots and get current booking status.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         campgroundId: { type: "string", description: "The campground ID" }
@@ -85,7 +85,7 @@ const MCP_TOOLS = [
   {
     name: "search_campgrounds",
     description: "Search for campgrounds by name, location, or description. Returns matching campgrounds with prices and details.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         searchTerm: { type: "string", description: "Search term for campground name, location, or description" },
@@ -97,7 +97,7 @@ const MCP_TOOLS = [
   {
     name: "get_campground_details",
     description: "Get full details about a specific campground including reviews, ratings, location, price, and amenities.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         campgroundId: { type: "string", description: "The campground ID" }
@@ -108,7 +108,7 @@ const MCP_TOOLS = [
   {
     name: "cancel_booking",
     description: "Cancel a user's booking and process refund if eligible. Only works for confirmed bookings.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         bookingId: { type: "string", description: "The booking ID to cancel" },
@@ -120,7 +120,7 @@ const MCP_TOOLS = [
   {
     name: "get_user_orders",
     description: "Get all shop orders for a specific user including order items, shipping details, and payment status.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         userId: { type: "string", description: "User ID" }
@@ -131,7 +131,7 @@ const MCP_TOOLS = [
   {
     name: "get_user_profile",
     description: "Get user profile information including username, email, join date, and statistics.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         userId: { type: "string", description: "User ID" }
@@ -142,7 +142,7 @@ const MCP_TOOLS = [
   {
     name: "get_order_details",
     description: "Get detailed information about a specific shop order.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         orderId: { type: "string", description: "Order ID" }
@@ -153,7 +153,7 @@ const MCP_TOOLS = [
   {
     name: "cancel_order",
     description: "Cancel a user's shop order and restore product inventory. Only works for pending/processing orders.",
-    input_schema: {
+    inputSchema: {
       type: "object",
       properties: {
         orderId: { type: "string", description: "Order ID to cancel" },
@@ -450,6 +450,37 @@ router.post('/initialize', authenticateMCP, (req, res) => {
 
 // Also respond to HEAD for connectivity checks
 router.head('/initialize', authenticateMCP, (req, res) => res.status(200).end());
+
+// Base path handlers: allow Intercom to POST/GET the mount point '/mcp'
+router.get('/', authenticateMCP, (req, res) => {
+  res.json({
+    protocolVersion: "2024-11-05",
+    serverInfo: {
+      name: "campgrounds-booking-mcp",
+      version: "1.0.0"
+    },
+    capabilities: {
+      tools: {},
+      resources: {}
+    }
+  });
+});
+
+router.post('/', authenticateMCP, (req, res) => {
+  res.json({
+    protocolVersion: "2024-11-05",
+    serverInfo: {
+      name: "campgrounds-booking-mcp",
+      version: "1.0.0"
+    },
+    capabilities: {
+      tools: {},
+      resources: {}
+    }
+  });
+});
+
+router.head('/', authenticateMCP, (req, res) => res.status(200).end());
 
 router.get('/tools/list', authenticateMCP, async (req, res) => {
   res.json({ tools: MCP_TOOLS });
