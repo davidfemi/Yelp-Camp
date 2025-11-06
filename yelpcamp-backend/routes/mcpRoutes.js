@@ -390,7 +390,21 @@ async function executeTool(name, args, req) {
   }
 }
 
-// MCP Routes
+// MCP Routes - Support both GET and POST for Intercom compatibility
+router.get('/initialize', authenticateMCP, (req, res) => {
+  res.json({
+    protocolVersion: "2024-11-05",
+    serverInfo: {
+      name: "campgrounds-booking-mcp",
+      version: "1.0.0"
+    },
+    capabilities: {
+      tools: {},
+      resources: {}
+    }
+  });
+});
+
 router.post('/initialize', authenticateMCP, (req, res) => {
   res.json({
     protocolVersion: "2024-11-05",
@@ -403,6 +417,10 @@ router.post('/initialize', authenticateMCP, (req, res) => {
       resources: {}
     }
   });
+});
+
+router.get('/tools/list', authenticateMCP, async (req, res) => {
+  res.json({ tools: MCP_TOOLS });
 });
 
 router.post('/tools/list', authenticateMCP, async (req, res) => {
