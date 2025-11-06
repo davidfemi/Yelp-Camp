@@ -556,11 +556,11 @@ router.post('/', authenticateMCP, (req, res) => {
 router.head('/', authenticateMCP, (req, res) => res.status(200).end());
 
 router.get('/tools/list', authenticateMCP, async (req, res) => {
-  res.json({ tools: MCP_TOOLS });
+  res.json({ tools: MCP_TOOLS, resources: [], prompts: [] });
 });
 
 router.post('/tools/list', authenticateMCP, async (req, res) => {
-  res.json({ tools: MCP_TOOLS });
+  res.json({ tools: MCP_TOOLS, resources: [], prompts: [] });
 });
 
 router.head('/tools/list', authenticateMCP, async (req, res) => res.status(200).end());
