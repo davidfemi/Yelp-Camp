@@ -58,6 +58,13 @@ const MCP_TOOLS = [
         userId: { type: "string", description: "MongoDB ObjectId of the user (24 character hex string)" }
       },
       required: ["userId"]
+    },
+    input_schema: {
+      type: "object",
+      properties: {
+        userId: { type: "string", description: "MongoDB ObjectId of the user (24 character hex string)" }
+      },
+      required: ["userId"]
     }
   },
   {
@@ -69,12 +76,26 @@ const MCP_TOOLS = [
         bookingId: { type: "string", description: "The booking ID (MongoDB ObjectId)" }
       },
       required: ["bookingId"]
+    },
+    input_schema: {
+      type: "object",
+      properties: {
+        bookingId: { type: "string", description: "The booking ID (MongoDB ObjectId)" }
+      },
+      required: ["bookingId"]
     }
   },
   {
     name: "check_campground_availability",
     description: "Check if a campground has available spots and get current booking status.",
     inputSchema: {
+      type: "object",
+      properties: {
+        campgroundId: { type: "string", description: "The campground ID" }
+      },
+      required: ["campgroundId"]
+    },
+    input_schema: {
       type: "object",
       properties: {
         campgroundId: { type: "string", description: "The campground ID" }
@@ -92,12 +113,27 @@ const MCP_TOOLS = [
         limit: { type: "number", description: "Maximum number of results (default: 10)" }
       },
       required: ["searchTerm"]
+    },
+    input_schema: {
+      type: "object",
+      properties: {
+        searchTerm: { type: "string", description: "Search term for campground name, location, or description" },
+        limit: { type: "number", description: "Maximum number of results (default: 10)" }
+      },
+      required: ["searchTerm"]
     }
   },
   {
     name: "get_campground_details",
     description: "Get full details about a specific campground including reviews, ratings, location, price, and amenities.",
     inputSchema: {
+      type: "object",
+      properties: {
+        campgroundId: { type: "string", description: "The campground ID" }
+      },
+      required: ["campgroundId"]
+    },
+    input_schema: {
       type: "object",
       properties: {
         campgroundId: { type: "string", description: "The campground ID" }
@@ -115,12 +151,27 @@ const MCP_TOOLS = [
         userId: { type: "string", description: "User ID for verification and authorization" }
       },
       required: ["bookingId", "userId"]
+    },
+    input_schema: {
+      type: "object",
+      properties: {
+        bookingId: { type: "string", description: "The booking ID to cancel" },
+        userId: { type: "string", description: "User ID for verification and authorization" }
+      },
+      required: ["bookingId", "userId"]
     }
   },
   {
     name: "get_user_orders",
     description: "Get all shop orders for a specific user including order items, shipping details, and payment status.",
     inputSchema: {
+      type: "object",
+      properties: {
+        userId: { type: "string", description: "User ID" }
+      },
+      required: ["userId"]
+    },
+    input_schema: {
       type: "object",
       properties: {
         userId: { type: "string", description: "User ID" }
@@ -137,6 +188,13 @@ const MCP_TOOLS = [
         userId: { type: "string", description: "User ID" }
       },
       required: ["userId"]
+    },
+    input_schema: {
+      type: "object",
+      properties: {
+        userId: { type: "string", description: "User ID" }
+      },
+      required: ["userId"]
     }
   },
   {
@@ -148,12 +206,27 @@ const MCP_TOOLS = [
         orderId: { type: "string", description: "Order ID" }
       },
       required: ["orderId"]
+    },
+    input_schema: {
+      type: "object",
+      properties: {
+        orderId: { type: "string", description: "Order ID" }
+      },
+      required: ["orderId"]
     }
   },
   {
     name: "cancel_order",
     description: "Cancel a user's shop order and restore product inventory. Only works for pending/processing orders.",
     inputSchema: {
+      type: "object",
+      properties: {
+        orderId: { type: "string", description: "Order ID to cancel" },
+        userId: { type: "string", description: "User ID for verification" }
+      },
+      required: ["orderId", "userId"]
+    },
+    input_schema: {
       type: "object",
       properties: {
         orderId: { type: "string", description: "Order ID to cancel" },
