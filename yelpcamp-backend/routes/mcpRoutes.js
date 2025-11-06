@@ -2,6 +2,21 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
+// Lightweight request logger for MCP routes (visible in Render logs)
+router.use((req, res, next) => {
+  const start = Date.now();
+  const hasAuth = !!(req.headers.authorization || req.headers['x-mcp-access-token'] || req.query.access_token);
+  res.on('finish', () => {
+    const elapsedMs = Date.now() - start;
+    try {
+      console.log(`[MCP] ${req.method} ${req.originalUrl} -> ${res.statusCode} ${elapsedMs}ms auth:${hasAuth} ip:${req.ip}`);
+    } catch (_) {
+      // ignore logging errors
+    }
+  });
+  next();
+});
+
 // MCP Authentication middleware (accepts multiple header/query formats for compatibility)
 const authenticateMCP = (req, res, next) => {
   const MCP_ACCESS_TOKEN = process.env.MCP_ACCESS_TOKEN;
