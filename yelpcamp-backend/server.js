@@ -21,6 +21,7 @@ const Order = require('./models/order');
 const ExpressError = require('./utils/ExpressError');
 const catchAsync = require('./utils/catchAsync');
 const RefundService = require('./utils/refundService');
+const { syncBookingToIntercom, syncOrderToIntercom, syncUserToIntercom } = require('./controllers/intercomSync');
 
 // Import Mapbox geocoding
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
@@ -631,6 +632,11 @@ app.post('/api/campgrounds/:id/bookings', authOrToken, catchAsync(async (req, re
         message: 'Booking created successfully'
     };
     
+    // Sync booking to Intercom (async, don't wait)
+    syncBookingToIntercom(booking, booking.user).catch(err => {
+        console.error('Failed to sync booking to Intercom:', err.message);
+    });
+    
     console.log('Sending clean response to frontend:', response);
     res.status(201).json(response);
 }));
@@ -924,6 +930,11 @@ app.post('/api/orders', authOrToken, catchAsync(async (req, res) => {
     
     await order.populate('items.product', 'name price image');
     await order.populate('user', 'username email');
+    
+    // Sync order to Intercom (async, don't wait)
+    syncOrderToIntercom(order, order.user).catch(err => {
+        console.error('Failed to sync order to Intercom:', err.message);
+    });
     
     res.status(201).json({
         success: true,
@@ -1373,6 +1384,13 @@ app.get('/sitemap.xml', catchAsync(async (req, res) => {
     res.set('Content-Type', 'application/xml');
     res.send(sitemap);
 }));
+
+// Intercom Sync Route (manual sync for a user)
+app.post('/api/intercom/sync/:userId', authOrToken, syncUserToIntercom);
+
+// MCP Routes (Model Context Protocol for Intercom integration)
+const mcpRoutes = require('./routes/mcpRoutes');
+app.use('/mcp', mcpRoutes);
 
 // Dynamic robots.txt endpoint
 app.get('/robots.txt', (req, res) => {
