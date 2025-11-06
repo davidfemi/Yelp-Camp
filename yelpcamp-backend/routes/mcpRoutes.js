@@ -2,16 +2,30 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
-// MCP Authentication middleware
+// MCP Authentication middleware (accepts multiple header/query formats for compatibility)
 const authenticateMCP = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader?.replace('Bearer ', '');
   const MCP_ACCESS_TOKEN = process.env.MCP_ACCESS_TOKEN;
-  
   if (!MCP_ACCESS_TOKEN) {
     return res.status(500).json({ error: 'MCP server not configured' });
   }
-  
+
+  const rawAuth = req.headers.authorization || req.get('Authorization') || '';
+  let token = null;
+
+  // Support: "Bearer <token>" or "Token <token>"
+  if (rawAuth.startsWith('Bearer ')) token = rawAuth.slice(7);
+  else if (rawAuth.startsWith('Token ')) token = rawAuth.slice(6);
+
+  // Fallback headers Intercom or proxies might use
+  if (!token) {
+    token = req.get('x-mcp-access-token') || req.get('x-api-access-token');
+  }
+
+  // Fallback query params for edge cases/testing
+  if (!token) {
+    token = req.query.access_token || req.query.token || req.query.mcp_access_token;
+  }
+
   if (!token || token !== MCP_ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -419,6 +433,9 @@ router.post('/initialize', authenticateMCP, (req, res) => {
   });
 });
 
+// Also respond to HEAD for connectivity checks
+router.head('/initialize', authenticateMCP, (req, res) => res.status(200).end());
+
 router.get('/tools/list', authenticateMCP, async (req, res) => {
   res.json({ tools: MCP_TOOLS });
 });
@@ -426,6 +443,8 @@ router.get('/tools/list', authenticateMCP, async (req, res) => {
 router.post('/tools/list', authenticateMCP, async (req, res) => {
   res.json({ tools: MCP_TOOLS });
 });
+
+router.head('/tools/list', authenticateMCP, async (req, res) => res.status(200).end());
 
 router.post('/tools/call', authenticateMCP, async (req, res) => {
   try {
