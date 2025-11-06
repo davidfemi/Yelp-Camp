@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosInstance } from 'axios';
+import config from '../config';
 import { 
   Campground, 
   User, 
@@ -9,7 +10,7 @@ import {
   Booking
 } from '../types';
 
-const API_URL = 'https://yelpcamp-vvv2.onrender.com';
+const API_URL = config.API_URL;
 
 // Helper function to make authenticated requests using session-based authentication
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
