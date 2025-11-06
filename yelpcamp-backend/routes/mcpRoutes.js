@@ -526,6 +526,17 @@ router.head('/initialize', authenticateMCP, (req, res) => res.status(200).end())
 
 // Base path handlers: allow Intercom to POST/GET the mount point '/mcp'
 router.get('/', authenticateMCP, (req, res) => {
+  const method = req.query.method;
+  if (method === 'tools/list') {
+    return res.json({ tools: MCP_TOOLS, resources: [], prompts: [] });
+  }
+  if (method === 'initialize') {
+    return res.json({
+      protocolVersion: "2024-11-05",
+      serverInfo: { name: "campgrounds-booking-mcp", version: "1.0.0" },
+      capabilities: { tools: {}, resources: {} }
+    });
+  }
   res.json({
     protocolVersion: "2024-11-05",
     serverInfo: {
@@ -539,18 +550,34 @@ router.get('/', authenticateMCP, (req, res) => {
   });
 });
 
-router.post('/', authenticateMCP, (req, res) => {
-  res.json({
-    protocolVersion: "2024-11-05",
-    serverInfo: {
-      name: "campgrounds-booking-mcp",
-      version: "1.0.0"
-    },
-    capabilities: {
-      tools: {},
-      resources: {}
+router.post('/', authenticateMCP, async (req, res) => {
+  const method = req.body?.method;
+  try {
+    if (method === 'tools/list') {
+      return res.json({ tools: MCP_TOOLS, resources: [], prompts: [] });
     }
-  });
+    if (method === 'initialize') {
+      return res.json({
+        protocolVersion: "2024-11-05",
+        serverInfo: { name: "campgrounds-booking-mcp", version: "1.0.0" },
+        capabilities: { tools: {}, resources: {} }
+      });
+    }
+    if (method === 'tools/call') {
+      const { name, arguments: args } = req.body?.params || {};
+      if (!name) return res.status(400).json({ error: 'Missing tool name' });
+      const result = await executeTool(name, args || {}, req);
+      return res.json(result);
+    }
+    // Default: behave like initialize
+    return res.json({
+      protocolVersion: "2024-11-05",
+      serverInfo: { name: "campgrounds-booking-mcp", version: "1.0.0" },
+      capabilities: { tools: {}, resources: {} }
+    });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
 });
 
 router.head('/', authenticateMCP, (req, res) => res.status(200).end());
