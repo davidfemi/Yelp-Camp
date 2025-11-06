@@ -551,30 +551,47 @@ router.get('/', authenticateMCP, (req, res) => {
 });
 
 router.post('/', authenticateMCP, async (req, res) => {
-  const method = req.body?.method;
+  const { jsonrpc, method, params, id } = req.body || {};
   console.log('[MCP-DEBUG] POST /mcp body:', JSON.stringify(req.body));
+  
   try {
-    if (method === 'tools/list') {
-      console.log('[MCP-DEBUG] Returning tools array, length:', MCP_TOOLS.length);
-      return res.json({ tools: MCP_TOOLS, resources: [], prompts: [] });
-    }
+    // JSON-RPC 2.0 response wrapper
+    const jsonRpcResponse = (result) => {
+      if (jsonrpc === '2.0') {
+        return res.json({ jsonrpc: '2.0', result, id });
+      }
+      return res.json(result);
+    };
+    
     if (method === 'initialize') {
-      return res.json({
+      console.log('[MCP-DEBUG] Handling initialize');
+      return jsonRpcResponse({
         protocolVersion: "2024-11-05",
         serverInfo: { name: "campgrounds-booking-mcp", version: "1.0.0" },
         capabilities: { tools: {}, resources: {} }
       });
     }
-    if (method === 'tools/call') {
-      const { name, arguments: args } = req.body?.params || {};
-      if (!name) return res.status(400).json({ error: 'Missing tool name' });
-      const result = await executeTool(name, args || {}, req);
-      return res.json(result);
+    
+    if (method === 'tools/list') {
+      console.log('[MCP-DEBUG] Returning tools array, length:', MCP_TOOLS.length);
+      return jsonRpcResponse({ tools: MCP_TOOLS });
     }
-    // Default: if no method or unrecognized, return tools list (most common discovery call)
+    
+    if (method === 'tools/call') {
+      const { name, arguments: args } = params || {};
+      if (!name) return res.status(400).json({ jsonrpc: '2.0', error: { code: -32602, message: 'Missing tool name' }, id });
+      const result = await executeTool(name, args || {}, req);
+      return jsonRpcResponse(result);
+    }
+    
+    // Default: return tools list
     console.log('[MCP-DEBUG] No method or unrecognized, returning tools list by default');
-    return res.json({ tools: MCP_TOOLS, resources: [], prompts: [] });
+    return jsonRpcResponse({ tools: MCP_TOOLS });
   } catch (e) {
+    console.error('[MCP-DEBUG] Error:', e.message);
+    if (jsonrpc === '2.0') {
+      return res.status(500).json({ jsonrpc: '2.0', error: { code: -32603, message: e.message }, id });
+    }
     return res.status(500).json({ error: e.message });
   }
 });
