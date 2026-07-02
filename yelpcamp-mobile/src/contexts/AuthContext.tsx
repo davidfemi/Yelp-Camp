@@ -16,6 +16,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper to normalize user object (MongoDB returns _id, we need id)
+const normalizeUser = (userData: any): User => {
+  return {
+    id: userData.id || userData._id,
+    username: userData.username,
+    email: userData.email,
+    createdAt: userData.createdAt,
+  };
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +39,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData = await AsyncStorage.getItem('user');
       
       if (userData) {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        // Normalize to ensure id field is set
+        setUser(normalizeUser(parsedUser));
       }
     } catch (error) {
       console.error('Error checking stored auth:', error);
@@ -52,9 +64,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (response.ok && data.success && data.data?.user) {
-        // Store user data locally
-        await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
-        setUser(data.data.user);
+        // Normalize and store user data locally
+        const normalizedUser = normalizeUser(data.data.user);
+        await AsyncStorage.setItem('user', JSON.stringify(normalizedUser));
+        setUser(normalizedUser);
         return true;
       } else {
         Alert.alert('Login Failed', data.message || 'Invalid credentials');
@@ -81,9 +94,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (response.ok && data.success && data.data?.user) {
-        // Store user data locally
-        await AsyncStorage.setItem('user', JSON.stringify(data.data.user));
-        setUser(data.data.user);
+        // Normalize and store user data locally
+        const normalizedUser = normalizeUser(data.data.user);
+        await AsyncStorage.setItem('user', JSON.stringify(normalizedUser));
+        setUser(normalizedUser);
         return true;
       } else {
         Alert.alert('Registration Failed', data.message || 'Registration failed');

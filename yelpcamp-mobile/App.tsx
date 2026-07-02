@@ -6,62 +6,64 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { CartProvider } from './src/contexts/CartContext';
 import { ToastProvider } from './src/contexts/ToastContext';
 import AppNavigator from './src/navigation/AppNavigator';
-import Intercom, { Visibility } from '@intercom/intercom-react-native';
+import { 
+  initializeIntercom, 
+  isIntercomAvailable,
+  logoutIntercom 
+} from './src/utils/intercomUtils';
 
 function AppContent() {
   const { user } = useAuth();
-  const [isAppReady, setIsAppReady] = useState(false);
   const [intercomInitialized, setIntercomInitialized] = useState(false);
 
-  // Wait for app to be fully ready before initializing Intercom
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsAppReady(true);
-    }, 1000); // Delay to ensure native modules are ready
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (!isAppReady) return;
-
-    // Initialize Intercom with direct API calls
+    // Initialize Intercom with safe wrappers (handles delays and retries internally)
     const startIntercom = async () => {
       try {
         console.log('Starting Intercom setup...');
         
-        if (user) {
+        // Get user ID with fallback for MongoDB _id
+        const userId = user?.id || (user as any)?._id;
+        
+        let success = false;
+        
+        if (user && userId) {
           // Login identified user
-          await Intercom.loginUserWithUserAttributes({
-            userId: user.id,
+          success = await initializeIntercom({
+            userId: userId,
             email: user.email,
             name: user.username,
             customAttributes: {
               created_at: user.createdAt ? Math.floor(new Date(user.createdAt).getTime() / 1000) : Math.floor(Date.now() / 1000),
             }
           });
-          console.log('Intercom user login successful');
         } else {
           // Login unidentified user
-          await Intercom.loginUnidentifiedUser();
-          console.log('Intercom unidentified login successful');
+          success = await initializeIntercom();
         }
         
-        // Set launcher visibility
-        await Intercom.setLauncherVisibility(Visibility.VISIBLE);
-        console.log('Intercom launcher set to visible');
+        setIntercomInitialized(success);
         
-        setIntercomInitialized(true);
-        console.log('Intercom setup completed successfully');
+        if (success) {
+          console.log('Intercom setup completed successfully');
+        } else {
+          console.log('Intercom not available (may need development build)');
+        }
       } catch (error) {
         console.error('Intercom setup error:', error);
         setIntercomInitialized(false);
-        console.warn('Intercom setup failed, but app will continue normally');
       }
     };
     
     startIntercom();
-  }, [user, isAppReady]);
+    
+    // Cleanup on user change
+    return () => {
+      if (intercomInitialized) {
+        logoutIntercom();
+      }
+    };
+  }, [user]);
 
   return (
     <>

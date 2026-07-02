@@ -39,7 +39,7 @@ public class AppDelegate: ExpoAppDelegate {
 
 // @generated begin react-native-maps-init - expo prebuild (DO NOT MODIFY) sync-91171d055083a6dc70ca12eb9669d17a7ed33217
 #if canImport(GoogleMaps)
-GMSServices.provideAPIKey("***REMOVED-GOOGLE-MAPS-KEY***")
+GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
 #endif
 // @generated end react-native-maps-init
     IntercomModule.initialize("ios_sdk-d5d209d7d2a2c501dc9c9e5042f47f9832088f76", withAppId: "hqd6b4qh")

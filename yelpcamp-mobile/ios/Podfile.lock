@@ -332,10 +332,32 @@ PODS:
   - hermes-engine (0.79.5):
     - hermes-engine/Pre-built (= 0.79.5)
   - hermes-engine/Pre-built (0.79.5)
-  - Intercom (18.7.3)
-  - intercom-react-native (8.7.0):
-    - Intercom (~> 18.7.3)
+  - Intercom (19.4.1)
+  - intercom-react-native (9.4.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - Intercom (~> 19.4.0)
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -2406,7 +2428,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
-  - react-native-google-maps (from `/Users/femiolatunji/Documents/untitled folder/The Campgrounds/yelpcamp-mobile/node_modules/react-native-maps`)
+  - react-native-google-maps (from `/Users/femiolatunji/Documents/TheCampgrounds/yelpcamp-mobile/node_modules/react-native-maps`)
   - react-native-maps (from `../node_modules/react-native-maps`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -2578,7 +2600,7 @@ EXTERNAL SOURCES:
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-google-maps:
-    :path: "/Users/femiolatunji/Documents/untitled folder/The Campgrounds/yelpcamp-mobile/node_modules/react-native-maps"
+    :path: "/Users/femiolatunji/Documents/TheCampgrounds/yelpcamp-mobile/node_modules/react-native-maps"
   react-native-maps:
     :path: "../node_modules/react-native-maps"
   react-native-safe-area-context:
@@ -2692,8 +2714,8 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: 66d6de12be1ce6d3742a54661e7a79cb317a9321
   GoogleMaps: 8939898920281c649150e0af74aa291c60f2e77d
   hermes-engine: f03b0e06d3882d71e67e45b073bb827da1a21aae
-  Intercom: 93c6f5d9815b34bf2a7e5f03bcf7b6e08c1a4788
-  intercom-react-native: 786a7e6c805bfd897ecacc2dbc7fe9ad0dd43347
+  Intercom: aca703f001cf9470b1f13b72cb8cc969a09bafca
+  intercom-react-native: 79e9ec90b84d82f828896e8fb2fd68dc094c9708
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
   RCTDeprecation: 5f638f65935e273753b1f31a365db6a8d6dc53b5
   RCTRequired: 8b46a520ea9071e2bc47d474aa9ca31b4a935bd8

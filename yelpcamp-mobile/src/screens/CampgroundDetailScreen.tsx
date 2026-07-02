@@ -21,7 +21,7 @@ import { campgroundsAPI } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
-import Intercom from '@intercom/intercom-react-native';
+import { logIntercomEvent } from '../utils/intercomUtils';
 import { useAuth } from '../contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
@@ -48,9 +48,9 @@ export default function CampgroundDetailScreen({ route }: Props) {
       const campgroundData = response.data?.campground || response.campground || response;
       setCampground(campgroundData);
       
-      // Track campground view in Intercom
+      // Track campground view in Intercom (safe wrapper handles errors)
       if (campgroundData) {
-        Intercom.logEvent('campground_viewed', {
+        logIntercomEvent('campground_viewed', {
           campground_id: campgroundData._id,
           campground_name: campgroundData.title,
           campground_location: campgroundData.location,

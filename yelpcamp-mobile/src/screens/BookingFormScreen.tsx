@@ -17,7 +17,7 @@ import type { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList, Campground } from '../types';
 import { bookingsAPI, campgroundsAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import Intercom from '@intercom/intercom-react-native';
+import { logIntercomEvent } from '../utils/intercomUtils';
 
 type Props = StackScreenProps<RootStackParamList, 'BookingForm'>;
 
@@ -115,9 +115,9 @@ export default function BookingFormScreen({ route, navigation }: Props) {
 
       const response = await bookingsAPI.create(campgroundId, bookingData);
       
-      // Track booking in Intercom
+      // Track booking in Intercom (safe wrapper handles errors)
       if (campground) {
-        Intercom.logEvent('booking_created', {
+        logIntercomEvent('booking_created', {
           booking_id: response.data?.booking?._id || 'unknown',
           campground_id: campground._id,
           campground_name: campground.title,
@@ -127,7 +127,7 @@ export default function BookingFormScreen({ route, navigation }: Props) {
           check_in_date: checkInDate.toISOString(),
           check_out_date: checkOutDate.toISOString(),
           guests: guests,
-          user_id: user.id,
+          user_id: user?.id || '',
         });
       }
       

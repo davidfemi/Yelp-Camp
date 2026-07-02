@@ -82,16 +82,9 @@ The Intercom integration is configured in `app.json`:
 
 ## Google Maps Configuration
 
-The Google Maps API key is configured in `app.json`:
-```json
-{
-  "ios": {
-    "config": {
-      "googleMapsApiKey": "***REMOVED-GOOGLE-MAPS-KEY***"
-    }
-  }
-}
-```
+The Google Maps API key is read from the `GOOGLE_MAPS_API_KEY` environment variable in `app.config.js`, which is used to inject the key into both `ios.config.googleMapsApiKey` and `android.config.googleMaps.apiKey`. Add your key to `.env` (see `.env.example`) — never commit it directly to `app.config.js` or the generated native files under `ios/` and `android/`.
+
+After changing the key, regenerate the native projects with `npx expo prebuild --clean` so `Info.plist`, `AndroidManifest.xml`, and `AppDelegate.swift` pick up the new value.
 
 ## Key Features
 

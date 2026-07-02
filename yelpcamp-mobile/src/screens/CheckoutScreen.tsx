@@ -19,7 +19,7 @@ import { RootStackParamList } from '../types';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import { ordersAPI } from '../services/api';
-import Intercom from '@intercom/intercom-react-native';
+import { logIntercomEvent } from '../utils/intercomUtils';
 
 type CheckoutScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Checkout'>;
 
@@ -116,21 +116,21 @@ export default function CheckoutScreen() {
 
       const response = await ordersAPI.create(orderData);
       
-              // Track order in Intercom
-        Intercom.logEvent('order_placed', {
-          order_id: response.data?._id || response._id || 'unknown',
-          order_total: calculateTotal(),
-          items_count: getCartItemCount(),
-          products: cart.map(item => ({
-            product_id: item.product._id,
-            product_name: item.product.name,
-            quantity: item.quantity,
-            price: item.product.price,
-          })),
-          user_id: user?.id || 'anonymous',
-          shipping_city: shippingAddress.city,
-          shipping_state: shippingAddress.state,
-        });
+      // Track order in Intercom (safe wrapper handles errors)
+      logIntercomEvent('order_placed', {
+        order_id: response.data?._id || response._id || 'unknown',
+        order_total: calculateTotal(),
+        items_count: getCartItemCount(),
+        products: cart.map(item => ({
+          product_id: item.product._id,
+          product_name: item.product.name,
+          quantity: item.quantity,
+          price: item.product.price,
+        })),
+        user_id: user?.id || 'anonymous',
+        shipping_city: shippingAddress.city,
+        shipping_state: shippingAddress.state,
+      });
       
       // Clear cart after successful order
       await clearCart();
